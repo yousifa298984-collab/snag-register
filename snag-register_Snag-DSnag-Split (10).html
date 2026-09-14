@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Snag Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E7E3D7;
+    --paper-2:#F3F0E6;
+    --ink:#232620;
+    --ink-soft:#5B5A4E;
+    --navy:#1E3A5F;
+    --navy-2:#274A73;
+    --line:#C6BFA9;
+    --orange:#C1541F;
+    --amber:#B9862B;
+    --green:#3C7A5B;
+    --red:#A0362E;
+    --white:#FFFDF8;
+    --shadow: 3px 4px 0 rgba(35,38,32,0.18);
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter','Segoe UI','Arial',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--paper-2);
+    display:flex;
+    flex-direction:column;
+    box-shadow: 0 0 40px rgba(0,0,0,0.15);
+    position:relative;
+  }
+
+  /* ---------- Header ---------- */
+  header.top{
+    background:var(--navy);
+    color:var(--white);
+    padding:14px 16px 16px;
+    position:sticky; top:0; z-index:20;
+  }
+  .top-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand-mark{
+    width:34px;height:34px;flex:none;
+    border:2px solid var(--orange);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800; font-size:15px; color:var(--orange);
+    transform:rotate(-6deg);
+  }
+  .brand-text .proj-name{
+    font-weight:800; font-size:16px; line-height:1.15;
+  }
+  .brand-text .proj-sub{
+    font-size:11px; color:#C9D6E4; margin-top:2px;
+  }
+  .engineer-credit{font-size:10.5px;color:#F4D6B8;margin-top:4px;font-weight:600;}
+  .report-tabs{
+    display:flex; align-items:center; gap:6px; margin-top:12px; overflow-x:auto;
+    scrollbar-width:thin; padding-bottom:2px;
+  }
+  .report-tab{
+    flex:0 0 auto; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.10);
+    color:var(--white); border-radius:14px; padding:6px 12px; font-size:11.5px; cursor:pointer;
+    max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .report-tab.active{background:var(--orange); border-color:var(--orange); font-weight:700;}
+  .report-tab.add{font-size:18px; line-height:13px; padding:5px 10px;}
+  .top-actions{display:flex; gap:6px;}
+  .icon-btn{
+    width:34px;height:34px;border:none;border-radius:50%;
+    background:rgba(255,255,255,0.12); color:var(--white);
+    font-size:16px; display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .icon-btn:active{background:rgba(255,255,255,0.25);}
+  .autosave-status{font-size:10px;color:#C9D6E4;text-align:right;margin-top:5px;min-height:12px;}
+  .autosave-status.saved{color:#B8DFC7;}
+  .autosave-status.warning{color:#F2C7A9;}
+  .dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+  .dash-card{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:12px;text-align:center;}
+  .dash-card .dash-number{display:block;font-size:26px;font-weight:800;color:var(--navy);}
+  .dash-card .dash-label{display:block;margin-top:4px;font-size:11.5px;color:var(--ink-soft);}
+  .dash-section-title{font-size:13px;font-weight:800;margin:14px 0 7px;color:var(--ink);}
+  .dash-villa-row{display:flex;justify-content:space-between;gap:10px;padding:9px 10px;background:var(--white);border:1px solid var(--line);border-radius:5px;margin-bottom:6px;font-size:13px;}
+  .dash-villa-row strong{color:var(--navy);}
+  .dash-note{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin-top:4px;}
+
+  /* ---------- Stats ticket row ---------- */
+  .stats{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:8px; margin-top:14px;
+  }
+  .stat{
+    background:rgba(255,255,255,0.07);
+    border:1px dashed rgba(255,255,255,0.35);
+    border-radius:4px;
+    padding:8px 4px; text-align:center; cursor:pointer;
+    transition:transform .12s;
+  }
+  .stat.active{background:var(--orange); border-color:var(--orange);}
+  .stat:active{transform:scale(0.96);}
+  .stat .n{display:block; font-weight:800; font-size:18px;}
+  .stat .l{display:block; font-size:10.5px; color:#D7E1EC; margin-top:2px;}
+  .stat.active .l{color:#3a1600;}
+  .stat.active .n{color:#fff;}
+
+  /* ---------- Search / filter bar ---------- */
+  .toolbar{
+    display:flex; gap:8px; padding:12px 16px; background:var(--paper-2);
+    position:sticky; top:78px; z-index:15; border-bottom:1px solid var(--line);
+  }
+  .search-box{
+    flex:1; display:flex; align-items:center; gap:6px;
+    background:var(--white); border:1px solid var(--line); border-radius:4px;
+    padding:8px 10px;
+  }
+  .search-box input{
+    border:none; outline:none; background:transparent; width:100%;
+    font-family:'Arial',sans-serif; font-size:13.5px; color:var(--ink);
+  }
+  .filter-btn{
+    display:flex; align-items:center; gap:6px;
+    background:var(--white); border:1px solid var(--line); border-radius:4px;
+    padding:8px 12px; font-family:'Arial',sans-serif; font-size:13px;
+    color:var(--ink); cursor:pointer; font-weight:600;
+  }
+  .filter-btn.on{background:var(--navy); color:#fff; border-color:var(--navy);}
+
+  /* ---------- Snag / D-Snag section toggle ---------- */
+  .section-toggle{
+    display:flex; gap:8px; padding:0 16px 12px; background:var(--paper-2);
+  }
+  .section-toggle button{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:9px 8px; border-radius:6px; border:1.5px solid var(--line);
+    background:var(--white); font-family:'Arial',sans-serif; font-weight:700;
+    font-size:13px; color:var(--ink-soft); cursor:pointer;
+  }
+  .section-toggle button.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+  .section-toggle .sec-count{
+    background:rgba(0,0,0,0.10); border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700;
+  }
+  .section-toggle button.active .sec-count{background:rgba(255,255,255,0.25);}
+
+  /* ---------- List ---------- */
+  main{flex:1; padding:10px 14px 100px;}
+  .empty{
+    text-align:center; padding:60px 20px; color:var(--ink-soft);
+  }
+  .empty .big{font-size:38px; margin-bottom:10px;}
+  .empty p{font-size:13.5px; line-height:1.7; max-width:280px; margin:0 auto;}
+
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    margin-bottom:14px;
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+  }
+  .card .stripe{
+    position:absolute; left:0; top:0; bottom:0; width:6px;
+  }
+  .stripe.critical{background:var(--red);}
+  .stripe.high{background:var(--orange);}
+  .stripe.medium{background:var(--amber);}
+  .stripe.low{background:#8B8A78;}
+
+  .card-body{padding:12px 14px 12px 12px; margin-left:6px;}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .card-title{font-weight:700; font-size:14.5px; line-height:1.4;}
+  .badge{
+    font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px;
+    white-space:nowrap; flex:none;
+  }
+  .badge.open{background:#FBE7DD; color:var(--orange);}
+  .badge.inprogress{background:#FBF1D9; color:var(--amber);}
+  .badge.closed{background:#DDEEE4; color:var(--green);}
+
+  .card-meta{
+    display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;
+    font-size:11.5px; color:var(--ink-soft);
+  }
+  .card-meta span{display:flex; align-items:center; gap:4px;}
+  .card-ref{font-size:10.5px;font-weight:800;letter-spacing:.4px;color:var(--navy);margin-bottom:5px;}
+  .source-link{display:inline-flex;align-items:center;gap:4px;color:var(--navy);font-weight:700;text-decoration:underline;cursor:pointer;}
+  .lang-btn{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;border-radius:14px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;}
+  .overdue-tag{
+    color:var(--red); font-weight:700;
+  }
+  .overdue-banner{display:none;margin:0 16px 10px;padding:10px 12px;background:#FBE7DD;border:1px solid #D9A49E;border-left:5px solid var(--red);border-radius:5px;color:var(--red);font-size:12.5px;font-weight:800;cursor:pointer;}
+  .overdue-banner.show{display:flex;justify-content:space-between;align-items:center;}
+  .bulk-bar{display:none;align-items:center;gap:7px;padding:8px 16px;background:#E6EDF4;border-bottom:1px solid var(--line);font-size:12px;}
+  .bulk-bar.show{display:flex;}
+  .bulk-bar select{flex:1;padding:7px;border:1px solid var(--line);border-radius:4px;background:var(--white);font-family:Arial;font-size:12px;}
+  .bulk-btn{border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:4px;padding:7px 9px;font-weight:700;cursor:pointer;}
+  .select-check{width:18px;height:18px;accent-color:var(--navy);flex:none;cursor:pointer;}
+  html[dir="rtl"] .app{text-align:right;}
+  html[dir="rtl"] .card .stripe{left:auto;right:0;}
+  html[dir="rtl"] .card-body{margin-left:0;margin-right:6px;padding-left:12px;padding-right:14px;}
+  html[dir="rtl"] .eng-code{text-align:left;}
+  .card-photos{display:flex; gap:6px; margin-top:10px;}
+  .card-photos img{
+    width:52px;height:52px;object-fit:cover;border-radius:3px;border:1px solid var(--line);
+  }
+  .tear{
+    border-top:1px dashed var(--line); margin:0 12px;
+  }
+
+  /* ---------- Floating add button ---------- */
+  .fab{
+    position:fixed; bottom:22px; right:calc(50% - 260px + 22px);
+    width:58px;height:58px;border-radius:50%;
+    background:var(--orange); color:#fff; border:none;
+    font-size:28px; box-shadow:0 6px 14px rgba(193,84,31,0.45);
+    display:flex;align-items:center;justify-content:center; cursor:pointer;
+    z-index:30;
+  }
+  @media (max-width:560px){
+    .fab{right:22px;}
+  }
+  .fab:active{transform:scale(0.94);}
+
+  /* ---------- Sheets / modals ---------- */
+  .sheet-backdrop{
+    position:fixed; inset:0; background:rgba(20,22,18,0.55);
+    display:none; align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .sheet-backdrop.show{display:flex;}
+  .sheet{
+    background:var(--paper-2); width:100%; max-width:520px;
+    max-height:92vh; overflow-y:auto;
+    border-radius:14px 14px 0 0;
+    padding:16px 18px 28px;
+    animation:slideUp .22s ease-out;
+  }
+  @keyframes slideUp{from{transform:translateY(30px); opacity:.6;} to{transform:translateY(0); opacity:1;}}
+  .sheet-head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px; padding-bottom:12px; border-bottom:2px solid var(--ink);
+  }
+  .sheet-head h2{font-size:17px; margin:0; font-weight:800;}
+  .close-x{
+    background:none;border:none;font-size:20px;color:var(--ink-soft); cursor:pointer; padding:4px;
+  }
+
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:5px;
+  }
+  .field input[type=text], .field input[type=date], .field textarea, .field select{
+    width:100%; font-family:'Arial',sans-serif; font-size:14px;
+    padding:9px 10px; border:1px solid var(--line); border-radius:4px;
+    background:var(--white); color:var(--ink);
+  }
+  .field textarea{resize:vertical; min-height:60px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  .seg{display:flex; gap:6px; flex-wrap:wrap;}
+  .seg button{
+    flex:1; min-width:70px; padding:9px 6px; border-radius:4px;
+    border:1.5px solid var(--line); background:var(--white);
+    font-family:'Arial',sans-serif; font-size:12.5px; font-weight:700; color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .seg button.sel[data-v=critical]{background:var(--red); border-color:var(--red); color:#fff;}
+  .seg button.sel[data-v=high]{background:var(--orange); border-color:var(--orange); color:#fff;}
+  .seg button.sel[data-v=medium]{background:var(--amber); border-color:var(--amber); color:#fff;}
+  .seg button.sel[data-v=low]{background:#8B8A78; border-color:#8B8A78; color:#fff;}
+  .seg button.sel[data-v=open]{background:var(--orange); border-color:var(--orange); color:#fff;}
+  .seg button.sel[data-v=inprogress]{background:var(--amber); border-color:var(--amber); color:#fff;}
+  .seg button.sel[data-v=closed]{background:var(--green); border-color:var(--green); color:#fff;}
+  .seg button.sel[data-v=dsnagissued]{background:#6D4C41; border-color:#6D4C41; color:#fff;}
+  .seg button.sel[data-v=rectification]{background:#7B61A8; border-color:#7B61A8; color:#fff;}
+  .seg button.sel[data-v=submitted]{background:#287A8C; border-color:#287A8C; color:#fff;}
+  .seg button.sel[data-v=verified]{background:#2E7D5B; border-color:#2E7D5B; color:#fff;}
+  .seg button.sel[data-v=reopened]{background:var(--red); border-color:var(--red); color:#fff;}
+
+  .photo-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .photo-thumb{
+    position:relative; width:74px;height:74px;border-radius:4px; overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;}
+  .photo-thumb .rm{
+    position:absolute; top:2px; right:2px; width:18px;height:18px;
+    background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%;
+    font-size:12px; line-height:1; cursor:pointer;
+  }
+  .add-photo-btn{
+    width:74px;height:74px;border-radius:4px; border:2px dashed var(--line);
+    background:var(--white); color:var(--ink-soft); font-size:22px;
+    display:flex;align-items:center;justify-content:center; cursor:pointer;
+  }
+
+  .btn-row{display:flex; gap:10px; margin-top:18px;}
+  .btn{
+    flex:1; padding:12px; border-radius:4px; border:none;
+    font-family:'Arial',sans-serif; font-weight:700; font-size:14px; cursor:pointer;
+  }
+  .btn.primary{background:var(--navy); color:#fff;}
+  .btn.danger{background:var(--red); color:#fff;}
+  .btn.ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line);}
+
+  .action-list{display:flex; flex-direction:column; gap:8px;}
+  .action-item{
+    display:flex; align-items:center; gap:12px; padding:13px 14px;
+    background:var(--white); border:1px solid var(--line); border-radius:6px;
+    font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .action-item .ic{font-size:18px; width:22px; text-align:center;}
+  .action-item small{display:block; font-weight:400; color:var(--ink-soft); font-size:11.5px; margin-top:2px;}
+  .action-item.danger-action{color:var(--red); border-color:#D9A49E;}
+  .action-item.danger-action small{color:var(--red);}
+
+  input[type=file]{display:none;}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:10px 18px; border-radius:20px;
+    font-size:13px; z-index:80; opacity:0; transition:opacity .25s; pointer-events:none;
+    max-width:80%; text-align:center;
+  }
+  .toast.show{opacity:1;}
+  body.auth-locked .app{visibility:hidden;}
+  .auth-screen{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;z-index:120;padding:18px;}
+  .auth-screen.hidden{display:none;}
+  .auth-card{width:100%;max-width:390px;background:var(--paper-2);border:1px solid var(--line);border-top:6px solid var(--navy);border-radius:8px;box-shadow:var(--shadow);padding:24px 20px;}
+  .auth-card h1{font-size:21px;margin:0 0 5px;color:var(--navy);}
+  .auth-card .auth-sub{font-size:12px;color:var(--ink-soft);margin-bottom:20px;line-height:1.5;}
+  .auth-error{display:none;background:#FBE7DD;border:1px solid #D9A49E;color:var(--red);padding:8px 10px;border-radius:4px;font-size:12px;margin-bottom:12px;}
+  .auth-error.show{display:block;}
+  .user-badge{font-size:10px;color:#C9D6E4;margin-top:4px;}
+  .account-admin{border-top:2px solid var(--line);margin-top:16px;padding-top:14px;}
+  .account-admin h3{font-size:14px;margin:0 0 10px;color:var(--ink);}
+  .account-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+  .account-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--white);border:1px solid var(--line);border-radius:4px;padding:7px 9px;font-size:12px;}
+  .account-row button{border:1px solid var(--red);background:transparent;color:var(--red);border-radius:3px;padding:4px 7px;cursor:pointer;font-size:11px;}
+  .account-note{font-size:11px;color:var(--ink-soft);line-height:1.45;margin-top:7px;}
+  .audit-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;}
+  .audit-table-wrap{overflow:auto;border:1px solid var(--line);background:var(--white);border-radius:5px;}
+  .audit-table{width:100%;border-collapse:collapse;font-size:11px;min-width:540px;}
+  .audit-table th,.audit-table td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;}
+  .audit-table th{background:#E6EDF4;color:var(--navy);font-weight:800;position:sticky;top:0;}
+  .audit-table tr:last-child td{border-bottom:none;}
+  :focus-visible{outline:3px solid #F2B84B;outline-offset:2px;}
+  .field input:invalid,.field textarea:invalid,.field select:invalid{border-color:var(--red);}
+  @media (max-width:560px){.toolbar{top:106px;}.sheet{max-height:94vh;}}
+
+  /* ---------- Printable report (native browser print → Save as PDF) ---------- */
+  #reportRoot{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #reportRoot, #reportRoot *{visibility:visible;}
+    #reportRoot{display:block; position:absolute; left:0; top:0; width:100%;}
+    @page{margin:14mm;}
+  }
+  .rp-page{padding:34px; font-family:'Arial',sans-serif; color:#1d2733;}
+  .engineering-report{font-family:'Arial',sans-serif;}
+  .eng-header{border-bottom:4px solid #1E3A5F;padding-bottom:12px;margin-bottom:18px;display:flex;justify-content:space-between;gap:20px;align-items:flex-start;}
+  .eng-brand{font-size:11px;letter-spacing:1.4px;color:#C1541F;font-weight:800;text-transform:uppercase;}
+  .eng-title{font-size:25px;font-weight:800;color:#1E3A5F;margin:5px 0 2px;}
+  .eng-subtitle{font-size:12px;color:#5b6570;}
+  .eng-code{text-align:right;font-size:11px;color:#4c5965;line-height:1.7;}
+  .eng-code strong{font-size:13px;color:#1E3A5F;}
+  .eng-meta{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bcc6cf;margin-bottom:16px;}
+  .eng-meta div{padding:8px 10px;border-bottom:1px solid #d7dde2;font-size:11.5px;}
+  .eng-meta div:nth-child(odd){border-right:1px solid #d7dde2;}
+  .eng-meta b{display:block;font-size:9.5px;color:#65727d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+  .eng-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0 18px;}
+  .eng-kpi{border:1px solid #bcc6cf;border-top:3px solid #1E3A5F;padding:8px;text-align:center;}
+  .eng-kpi.open{border-top-color:#C1541F}.eng-kpi.progress{border-top-color:#B9862B}.eng-kpi.closed{border-top-color:#3C7A5B}
+  .eng-kpi strong{display:block;font-size:20px;color:#1E3A5F}.eng-kpi span{font-size:9.5px;color:#596773;text-transform:uppercase;}
+  .eng-section-title{font-size:13px;color:#1E3A5F;font-weight:800;border-bottom:2px solid #1E3A5F;padding-bottom:5px;margin:10px 0 9px;text-transform:uppercase;letter-spacing:.4px;}
+  .eng-footer{border-top:1px solid #cbd2d8;margin-top:18px;padding-top:6px;font-size:9px;color:#74808a;display:flex;justify-content:space-between;}
+  .rp-item{border:1px solid #b8c2cc;border-left:5px solid #8b9aaa;border-radius:2px;padding:12px 14px;margin-bottom:11px;break-inside:avoid;page-break-inside:avoid;}
+  .rp-item.priority-critical{border-left-color:#A0362E}.rp-item.priority-high{border-left-color:#C1541F}.rp-item.priority-medium{border-left-color:#B9862B}.rp-item.priority-low{border-left-color:#8B8A78}
+  .rp-item h3{margin:0 0 7px;font-size:14px;color:#1E3A5F;}
+  .rp-item .meta{font-size:10.5px;color:#3f4b56;margin-bottom:7px;line-height:1.65;border-top:1px solid #e0e4e7;border-bottom:1px solid #e0e4e7;padding:5px 0;}
+  .rp-item .desc{font-size:11.5px;margin-bottom:8px;line-height:1.55;color:#27333d;}
+  .rp-photos{display:flex;gap:7px;flex-wrap:wrap;}
+  .rp-photos img{width:142px;height:105px;object-fit:cover;border:1px solid #aeb9c2;border-radius:2px;}
+  .rp-photo-label{font-size:10px;font-weight:800;color:#1E3A5F;text-transform:uppercase;letter-spacing:.4px;margin:8px 0 4px;}
+  @media print{.eng-footer{position:relative;} .rp-page{padding:0;} .eng-meta,.eng-kpis{break-inside:avoid;}}
+  .rp-cover h1{font-size:24px; margin:0 0 4px; color:#1E3A5F;}
+  .rp-cover .sub{color:#555; font-size:13px; margin-bottom:22px;}
+  .rp-cover table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px;}
+  .rp-cover table td{border:1px solid #ccc; padding:8px 10px;}
+  .rp-summary{display:flex; gap:10px; margin-top:18px;}
+  .rp-summary div{flex:1; border:1px solid #ccc; border-radius:4px; padding:10px; text-align:center;}
+  .rp-summary .n{font-size:20px; font-weight:800; display:block;}
+  .rp-report-separator{break-before:page; page-break-before:always;}
+  .rp-item{border:1px solid #ccc; border-radius:5px; padding:14px 16px; margin-bottom:14px; break-inside:avoid; page-break-inside:avoid;}
+  .rp-item h3{margin:0 0 6px; font-size:15px;}
+  .rp-item .meta{font-size:11.5px; color:#444; margin-bottom:8px; line-height:1.6;}
+  .rp-item .desc{font-size:12.5px; margin-bottom:8px; line-height:1.6;}
+  .rp-photos{display:flex; gap:8px;}
+  .rp-photos img{width:150px; height:112px; object-fit:cover; border:1px solid #ccc; border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <h1 id="authTitle">Field Snag Register</h1>
+    <div class="auth-sub" id="authSubtitle">Sign in with your user account to access the application.</div>
+    <div class="auth-error" id="authError" role="alert"></div>
+    <form id="loginForm">
+      <div class="field"><label for="loginUsername">Username</label><input type="text" id="loginUsername" autocomplete="username" required></div>
+      <div class="field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" autocomplete="current-password" required></div>
+      <button class="btn primary" type="submit" style="width:100%;">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<div class="app">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <div class="brand-mark">✓</div>
+        <div class="brand-text">
+          <div class="proj-name" id="projNameDisp">Project Name</div>
+          <div class="proj-sub" id="projSubDisp">Field Snag Register</div>
+          <div class="engineer-credit" id="engineerCredit">إعداد وتصميم المهندس يوسف عبدالله المحمود</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="user-badge" id="currentUserBadge"></span>
+        <button class="lang-btn" id="btnLanguage" title="العربية / English">عربي</button>
+        <button class="icon-btn" id="btnDashboard" aria-label="Dashboard" title="Dashboard" type="button">▥</button>
+        <button class="icon-btn" id="btnSettings" aria-label="Project Settings" title="Project Settings" type="button">⚙</button>
+        <button class="icon-btn" id="btnExportMenu" aria-label="Export" title="Export" type="button">⬇</button>
+        <button class="icon-btn" id="btnAudit" aria-label="Activity log" title="Activity log" type="button">☷</button>
+        <button class="icon-btn" id="btnLogout" aria-label="Sign out" title="Sign out" type="button">⇥</button>
+      </div>
+    </div>
+    <div class="report-tabs" id="reportTabs"></div>
+    <div class="autosave-status" id="autosaveStatus">Auto-save ready</div>
+    <div class="stats">
+      <div class="stat" data-f="all"><span class="n" id="statAll">0</span><span class="l">Total</span></div>
+      <div class="stat" data-f="open"><span class="n" id="statOpen">0</span><span class="l">Open</span></div>
+      <div class="stat" data-f="inprogress"><span class="n" id="statProg">0</span><span class="l">In Progress</span></div>
+      <div class="stat" data-f="closed"><span class="n" id="statClosed">0</span><span class="l">Closed</span></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span>🔎</span>
+      <input type="text" id="searchInput" placeholder="Search for a snag, location, assignee...">
+    </div>
+    <button class="filter-btn" id="btnFilters">Filters</button>
+  </div>
+
+  <div class="section-toggle" id="sectionToggle">
+    <button data-sec="snag" class="active" type="button">Snag Reports <span class="sec-count" id="secCountSnag">0</span></button>
+    <button data-sec="dsnag" type="button">D-Snag Reports <span class="sec-count" id="secCountDsnag">0</span></button>
+  </div>
+
+  <div class="overdue-banner" id="overdueBanner"><span>⏱ <span id="overdueCount">0</span> overdue item(s) in this report</span><span>Show overdue →</span></div>
+  <div class="bulk-bar" id="bulkBar"><strong><span id="selectedCount">0</span> selected</strong><select id="bulkStatus"><option value="">Change status…</option><option value="open">Open</option><option value="inprogress">In Progress</option><option value="dsnagissued">D-Snag Issued</option><option value="rectification">Under Rectification</option><option value="submitted">D-Snag Submitted</option><option value="verified">Verified</option><option value="closed">Closed</option><option value="reopened">Rejected / Reopened</option></select><button class="bulk-btn" id="applyBulkStatus">Apply</button><button class="bulk-btn" id="clearSelection" style="background:transparent;color:var(--navy);">Clear</button></div>
+
+  <main id="listArea"></main>
+
+  <button class="fab" id="btnAdd" title="Add Snag" aria-label="Add Snag" type="button">+</button>
+</div>
+
+<!-- Add/Edit sheet -->
+<div class="sheet-backdrop" id="sheetEdit" role="presentation">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <div class="sheet-head">
+      <h2 id="editTitle">New Snag</h2>
+      <button class="close-x" id="closeEdit" aria-label="Close" type="button">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Snag Description *</label>
+      <input type="text" id="f_title" placeholder="Example: Cracks in staircase wall - Second Floor">
+    </div>
+    <div class="field" id="refField"><label>Reference Number</label><input type="text" id="f_ref" readonly></div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Villa Number</label>
+        <input type="text" id="f_villa" list="villaList" placeholder="Example: Villa 14">
+        <datalist id="villaList"></datalist>
+      </div>
+      <div class="field">
+        <label>Location / Room</label>
+        <input type="text" id="f_location" list="locationList" placeholder="Example: Bedroom">
+        <datalist id="locationList"></datalist>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Floor / Level</label>
+        <input type="text" id="f_floor" list="floorList" placeholder="Example: Second Floor">
+        <datalist id="floorList"></datalist>
+      </div>
+      <div class="field">
+        <label>Trade / Item (select or type)</label>
+        <input type="text" id="f_trade" list="tradeList" placeholder="Select or type a trade / item">
+        <datalist id="tradeList"></datalist>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Priority</label>
+      <div class="seg" id="seg_priority">
+        <button data-v="critical" type="button">Critical</button>
+        <button data-v="high" type="button">High</button>
+        <button data-v="medium" type="button">Medium</button>
+        <button data-v="low" type="button">Low</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Status</label>
+      <div class="seg" id="seg_status">
+        <button data-v="open" type="button">Open</button>
+        <button data-v="inprogress" type="button">In Progress</button>
+        <button data-v="dsnagissued" type="button">D-Snag Issued</button>
+        <button data-v="rectification" type="button">Under Rectification</button>
+        <button data-v="submitted" type="button">D-Snag Submitted</button>
+        <button data-v="verified" type="button">Verified</button>
+        <button data-v="closed" type="button">Closed</button>
+        <button data-v="reopened" type="button">Rejected / Reopened</button>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Assignee</label>
+        <input type="text" id="f_assignee" list="assigneeList" placeholder="Contractor / Technician Name">
+        <datalist id="assigneeList"></datalist>
+      </div>
+      <div class="field">
+        <label>Due Date</label>
+        <input type="date" id="f_due">
+      </div>
+    </div>
+
+    <div class="field" style="border-top:2px solid var(--line);padding-top:12px;">
+      <label>D-Snag Follow-up</label>
+      <div class="row2">
+        <div class="field"><label>D-Snag Reference</label><input type="text" id="f_dsnagRef" placeholder="Example: DS-214-001"></div>
+        <div class="field"><label>D-Snag Response Date</label><input type="date" id="f_dsnagDate"></div>
+      </div>
+      <div class="field"><label>Corrective Action / Contractor Response</label><textarea id="f_corrective" placeholder="Describe the corrective action completed..."></textarea></div>
+      <div class="row2">
+        <div class="field"><label>Submitted By</label><input type="text" id="f_submittedBy" placeholder="Contractor / Supervisor"></div>
+        <div class="field"><label>Verified By</label><input type="text" id="f_verifiedBy" placeholder="Engineer Name"></div>
+      </div>
+      <div class="field"><label>Rejection Reason / Closure Notes</label><textarea id="f_verificationNotes" placeholder="Reason for rejection or verification notes..."></textarea></div>
+    </div>
+
+    <div class="field">
+      <label>Problem Photos</label>
+      <div class="photo-row" id="photoRow"></div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" multiple>
+    </div>
+
+    <div class="field">
+      <label>After-Rectification Photos</label>
+      <div class="photo-row" id="afterPhotoRow"></div>
+      <input type="file" id="afterPhotoInput" accept="image/*" capture="environment" multiple>
+    </div>
+
+    <div class="field">
+      <label>Additional Notes</label>
+      <textarea id="f_notes" placeholder="Details, corrective action, follow-up notes..."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn ghost" id="btnDelete" style="display:none;">Delete</button>
+      <button class="btn primary" id="btnSave">Save Snag</button>
+    </div>
+  </div>
+</div>
+
+<!-- Filters sheet -->
+<div class="sheet-backdrop" id="sheetFilters" role="presentation">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="filtersTitle">
+    <div class="sheet-head">
+      <h2 id="filtersTitle">Filters &amp; Sort By</h2>
+      <button class="close-x" id="closeFilters">✕</button>
+    </div>
+    <div class="field">
+      <label>Villa Number</label>
+      <select id="filterVilla"><option value="">All Villas</option></select>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select id="filterStatus">
+        <option value="all">All Statuses</option>
+        <option value="open">Open</option>
+        <option value="inprogress">In Progress</option>
+        <option value="dsnagissued">D-Snag Issued</option>
+        <option value="rectification">Under Rectification</option>
+        <option value="submitted">D-Snag Submitted</option>
+        <option value="verified">Verified</option>
+        <option value="closed">Closed</option>
+        <option value="reopened">Rejected / Reopened</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Trade / Item</label>
+      <select id="filterTrade"><option value="">All</option></select>
+    </div>
+    <div class="field">
+      <label>Priority</label>
+      <select id="filterPriority">
+        <option value="">All</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Sort By</label>
+      <select id="sortMode">
+        <option value="priority">Priority, then Due Date</option>
+        <option value="newest">Newest First</option>
+        <option value="due">Due Date</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="btnClearFilters">Reset</button>
+      <button class="btn primary" id="btnApplyFilters">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings sheet -->
+<div class="sheet-backdrop" id="sheetSettings">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Project Settings</h2>
+      <button class="close-x" id="closeSettings">✕</button>
+    </div>
+    <div class="field">
+      <label>Project Name</label>
+      <input type="text" id="s_projName" placeholder="Example: Nesaj Town Project">
+    </div>
+    <div class="field">
+      <label>Location</label>
+      <input type="text" id="s_projLoc" placeholder="Example: Riyadh">
+    </div>
+    <div class="field">
+      <label>Report Prepared By</label>
+      <input type="text" id="s_preparedBy" placeholder="Your Name / Job Title">
+    </div>
+    <div class="field">
+      <label>Engineer / Designer Credit</label>
+      <input type="text" id="s_engineerDesigner" value="إعداد وتصميم المهندس يوسف عبدالله المحمود" placeholder="Engineer / Designer Name">
+    </div>
+    <div class="account-admin" id="accountAdmin" style="display:none;">
+      <h3>User Accounts</h3>
+      <div id="accountList" class="account-list"></div>
+      <div class="row2">
+        <div class="field"><label>New Username</label><input type="text" id="newUsername" autocomplete="off"></div>
+        <div class="field"><label>New Password</label><input type="password" id="newUserPassword" autocomplete="new-password"></div>
+      </div>
+      <div class="field"><label>Role</label><select id="newUserRole"><option value="user">User — add and edit</option><option value="admin">Administrator</option></select></div>
+      <button class="btn primary" id="btnCreateUser" type="button">Create User Account</button>
+      <div class="account-note">Administrators can create or remove accounts. Users can add and edit snags but cannot manage accounts or delete full reports.</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="btnSaveSettings" style="flex:1;">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audit log sheet -->
+<div class="sheet-backdrop" id="sheetAudit">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="auditTitle">
+    <div class="sheet-head">
+      <h2 id="auditTitle">Activity Log</h2>
+      <button class="close-x" id="closeAudit" aria-label="Close" type="button">✕</button>
+    </div>
+    <div class="audit-toolbar"><span class="account-note" id="auditSummary"></span><button class="btn danger" id="btnClearAudit" type="button" style="flex:none;padding:8px 10px;">Clear Log</button></div>
+    <div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Date / Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody id="auditTableBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- Export / actions menu -->
+<div class="sheet-backdrop" id="sheetExport">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Export &amp; Backup</h2>
+      <button class="close-x" id="closeExport">✕</button>
+    </div>
+    <div class="action-list">
+      <div class="action-item" id="actPdf"><span class="ic">🖨️</span><div>Current Report — PDF<small>Print or save the selected report as PDF</small></div></div>
+      <div class="action-item" id="actAllPdf"><span class="ic">📚</span><div>All Reports — One PDF<small>Combine every report into one printable PDF file</small></div></div>
+      <div class="action-item" id="actSelectedPdf"><span class="ic">☑️</span><div>Selected Reports — One PDF<small>Choose only the reports you want to combine</small></div></div>
+      <div class="action-item danger-action" id="actDeleteReport"><span class="ic">🗑️</span><div>Delete Current Report<small>Delete the open report and all its snags and photos</small></div></div>
+      <div class="action-item" id="actExcel"><span class="ic">📊</span><div>Excel File<small>Table containing all snags without photos</small></div></div>
+      <div class="action-item" id="actBackup"><span class="ic">💾</span><div>Backup (JSON)<small>Save your data or transfer it to another device</small></div></div>
+      <div class="action-item" id="actRestore"><span class="ic">📥</span><div>Import Backup<small>Restore data from a JSON file</small></div></div>
+    </div>
+    <input type="file" id="restoreInput" accept="application/json">
+  </div>
+</div>
+
+<!-- Statistics dashboard -->
+<div class="sheet-backdrop" id="sheetDashboard">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Statistics Dashboard</h2>
+      <button class="close-x" id="closeDashboard">✕</button>
+    </div>
+    <div id="dashboardContent"></div>
+    <div class="btn-row">
+      <button class="btn ghost" id="exportDashboardExcel">Export Excel</button>
+      <button class="btn primary" id="exportDashboardPdf">Export PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Select reports for PDF export -->
+<div class="sheet-backdrop" id="sheetSelectReports">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Select Reports</h2>
+      <button class="close-x" id="closeSelectReports">✕</button>
+    </div>
+    <div class="field">
+      <label>Choose one or more reports</label>
+      <div id="reportSelectionList" class="action-list"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="cancelSelectReports">Cancel</button>
+      <button class="btn primary" id="exportSelectedPdf">Export Selected PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pick a Snag report to create its D-Snag follow-up report -->
+<div class="sheet-backdrop" id="sheetPickSnagForDsnag">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Create D-Snag Report</h2>
+      <button class="close-x" id="closePickSnagForDsnag">✕</button>
+    </div>
+    <div class="field">
+      <label>Choose the Snag report to create its D-Snag follow-up report (all items will be copied)</label>
+      <div id="pickSnagForDsnagList" class="action-list"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="cancelPickSnagForDsnag">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Printable report used for the print / Save as PDF action -->
+<div id="reportRoot"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- Storage helpers ---------------- */
+  var STORE_ITEMS = 'snagapp_items_v1';
+  var STORE_PROJECT = 'snagapp_project_v1';
+  var STORE_REPORTS = 'snagapp_reports_v1';
+  var STORE_USERS = 'snagapp_users_v1';
+  var STORE_SESSION = 'snagapp_session_v1';
+  var STORE_AUDIT = 'snagapp_audit_v1';
+  var DB_NAME = 'snagapp_photo_storage_v1';
+  var DB_STORE = 'items';
+  var itemsDb = null;
+  var authUsers = [];
+  var currentUser = null;
+  var auditLog = [];
+
+  function loadAuditLog(){
+    try{var data=JSON.parse(localStorage.getItem(STORE_AUDIT));return Array.isArray(data)?data:[];}catch(e){return [];}
+  }
+  function saveAuditLog(){try{localStorage.setItem(STORE_AUDIT,JSON.stringify(auditLog));}catch(e){}}
+  function recordActivity(action,details){
+    auditLog=Array.isArray(auditLog)?auditLog:[];
+    auditLog.unshift({id:uid(),at:new Date().toISOString(),user:currentUser?currentUser.username:'System',role:currentUser?currentUser.role:'system',action:String(action||''),details:String(details||'')});
+    if(auditLog.length>1000) auditLog=auditLog.slice(0,1000);
+    saveAuditLog();
+  }
+  function renderAuditLog(){
+    var body=document.getElementById('auditTableBody'); if(!body) return;
+    document.getElementById('auditSummary').textContent=authText(auditLog.length+' recorded operation(s)','عدد العمليات المسجلة: '+auditLog.length);
+    body.innerHTML=auditLog.map(function(entry){return '<tr><td>'+escapeHtml(new Date(entry.at).toLocaleString())+'</td><td>'+escapeHtml(entry.user)+'<br><small>'+escapeHtml(entry.role)+'</small></td><td>'+escapeHtml(entry.action)+'</td><td>'+escapeHtml(entry.details)+'</td></tr>';}).join('') || '<tr><td colspan="4">No activity recorded.</td></tr>';
+  }
+
+  function passwordHash(value){
+    var text=String(value||''), hash=2166136261;
+    for(var i=0;i<text.length;i++){ hash^=text.charCodeAt(i); hash=Math.imul(hash,16777619); }
+    return (hash>>>0).toString(16);
+  }
+  function loadUsers(){
+    try{ var data=JSON.parse(localStorage.getItem(STORE_USERS)); return Array.isArray(data)?data:[]; }
+    catch(e){ return []; }
+  }
+  function saveUsers(){ localStorage.setItem(STORE_USERS,JSON.stringify(authUsers)); }
+  function seedUsers(){
+    authUsers=loadUsers();
+    if(!authUsers.length){
+      authUsers=[{id:uid(),username:'admin',passwordHash:passwordHash('1984'),role:'admin',createdAt:new Date().toISOString()}];
+      saveUsers();
+    }
+  }
+  function authText(en,ar){ return language==='ar' ? ar : en; }
+  function updateAuthUI(){
+    document.body.classList.toggle('auth-locked',!currentUser);
+    document.getElementById('authScreen').classList.toggle('hidden',!!currentUser);
+    document.getElementById('authSubtitle').textContent=authText('Sign in with your user account to access the application.','سجل الدخول بحساب المستخدم للوصول إلى التطبيق.');
+    document.querySelector('#loginForm label[for="loginUsername"]').textContent=authText('Username','اسم المستخدم');
+    document.querySelector('#loginForm label[for="loginPassword"]').textContent=authText('Password','كلمة المرور');
+    document.querySelector('#loginForm button').textContent=authText('Sign In','تسجيل الدخول');
+    var badge=document.getElementById('currentUserBadge');
+    if(badge) badge.textContent=currentUser ? currentUser.username+' ('+currentUser.role+')' : '';
+    var admin=document.getElementById('accountAdmin');
+    if(admin) admin.style.display=currentUser && currentUser.role==='admin' ? 'block' : 'none';
+  }
+  function showAuthError(message){ var el=document.getElementById('authError'); el.textContent=message; el.classList.add('show'); }
+  function clearAuthError(){ document.getElementById('authError').classList.remove('show'); }
+  function renderAccountList(){
+    var el=document.getElementById('accountList'); if(!el) return;
+    el.innerHTML=authUsers.map(function(u){
+      var canDelete=currentUser && currentUser.role==='admin' && u.id!==currentUser.id && !(u.role==='admin' && authUsers.filter(function(x){return x.role==='admin';}).length===1);
+      return '<div class="account-row"><span><strong>'+escapeHtml(u.username)+'</strong> · '+escapeHtml(u.role)+'</span>'+(canDelete?'<button type="button" data-delete-user="'+escapeHtml(u.id)+'">Remove</button>':'<span style="font-size:10px;color:var(--ink-soft);">Protected</span>')+'</div>';
+    }).join('');
+    el.querySelectorAll('[data-delete-user]').forEach(function(btn){btn.addEventListener('click',function(){
+      var target=authUsers.find(function(u){return u.id===btn.getAttribute('data-delete-user');}); if(!target) return;
+      if(!confirm(authText('Remove user "'+target.username+'"?','إزالة المستخدم "'+target.username+'"؟'))) return;
+      authUsers=authUsers.filter(function(u){return u.id!==target.id;}); saveUsers(); renderAccountList(); recordActivity('Remove user','Removed account: '+target.username); showToast(authText('User removed','تمت إزالة المستخدم'));
+    });});
+  }
+  function initAuth(){
+    auditLog=loadAuditLog();
+    seedUsers();
+    var saved=localStorage.getItem(STORE_SESSION);
+    currentUser=authUsers.find(function(u){return u.id===saved;}) || null;
+    updateAuthUI();
+    document.getElementById('loginForm').addEventListener('submit',function(e){
+      e.preventDefault(); clearAuthError();
+      var username=document.getElementById('loginUsername').value.trim();
+      var password=document.getElementById('loginPassword').value;
+      var user=authUsers.find(function(u){return u.username.toLowerCase()===username.toLowerCase() && u.passwordHash===passwordHash(password);});
+      if(!user){recordActivity('Failed sign in','Failed login attempt for username: '+username);showAuthError(authText('Invalid username or password.','اسم المستخدم أو كلمة المرور غير صحيحة.'));return;}
+      currentUser=user; localStorage.setItem(STORE_SESSION,user.id); document.getElementById('loginPassword').value=''; updateAuthUI(); recordActivity('Sign in','User signed in'); showToast(authText('Signed in successfully','تم تسجيل الدخول بنجاح'));
+    });
+    document.getElementById('btnLogout').addEventListener('click',function(){
+      recordActivity('Sign out','User signed out'); localStorage.removeItem(STORE_SESSION); currentUser=null; updateAuthUI(); document.getElementById('loginUsername').value=''; document.getElementById('loginPassword').value='';
+    });
+    document.getElementById('btnAudit').addEventListener('click',function(){
+      if(!currentUser || currentUser.role!=='admin'){showToast(authText('Only an administrator can view the activity log','فقط المدير يستطيع عرض سجل النشاطات'));return;}
+      renderAuditLog(); document.getElementById('sheetAudit').classList.add('show'); recordActivity('View audit log','Administrator opened the activity log');
+    });
+    document.getElementById('closeAudit').addEventListener('click',function(){document.getElementById('sheetAudit').classList.remove('show');});
+    document.getElementById('sheetAudit').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+    document.getElementById('btnClearAudit').addEventListener('click',function(){
+      if(!currentUser || currentUser.role!=='admin') return;
+      var pw=window.prompt(authText('Enter the administrator password to clear the activity log:','أدخل كلمة مرور المدير لمسح سجل النشاطات:'));
+      if(pw!=='1984'){showToast(authText('Incorrect password','كلمة المرور غير صحيحة'));return;}
+      auditLog=[]; saveAuditLog(); renderAuditLog(); showToast(authText('Activity log cleared','تم مسح سجل النشاطات'));
+    });
+  }
+
+  function loadItems(){
+    try{ return JSON.parse(localStorage.getItem(STORE_ITEMS)) || []; }
+    catch(e){ return []; }
+  }
+  function openItemsDb(){
+    return new Promise(function(resolve, reject){
+      if(!window.indexedDB){ reject(new Error('IndexedDB unavailable')); return; }
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function(){
+        if(!req.result.objectStoreNames.contains(DB_STORE)) req.result.createObjectStore(DB_STORE, {keyPath:'key'});
+      };
+      req.onsuccess = function(){ itemsDb = req.result; resolve(itemsDb); };
+      req.onerror = function(){ reject(req.error || new Error('Database open failed')); };
+    });
+  }
+  function saveItems(items){
+    syncActiveReport();
+    if(!itemsDb){
+      try{ localStorage.setItem(STORE_ITEMS, JSON.stringify(items)); localStorage.setItem(STORE_REPORTS, JSON.stringify(reports)); return true; }
+      catch(e){ showToast('Unable to save — device storage is full. Export a backup.'); return false; }
+    }
+    try{
+      var tx = itemsDb.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).put({key:'all', items:items});
+      tx.objectStore(DB_STORE).put({key:'reports', reports:reports});
+      tx.onerror = function(){ showToast('Unable to save — device storage is full. Export a backup.'); };
+      return true;
+    }catch(e){ showToast('Unable to save — device storage is full. Export a backup.'); return false; }
+  }
+  function loadItemsFromDb(){
+    return new Promise(function(resolve, reject){
+      if(!itemsDb){ reject(new Error('Database unavailable')); return; }
+      var req = itemsDb.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get('all');
+      req.onsuccess = function(){ resolve(req.result && Array.isArray(req.result.items) ? req.result.items : null); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  }
+  function loadReportsFromDb(){
+    return new Promise(function(resolve, reject){
+      if(!itemsDb){ reject(new Error('Database unavailable')); return; }
+      var req = itemsDb.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get('reports');
+      req.onsuccess = function(){ resolve(req.result && Array.isArray(req.result.reports) ? req.result.reports : null); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  }
+  function initializeItemsStorage(){
+    var localReports=null;
+    try{ localReports=JSON.parse(localStorage.getItem(STORE_REPORTS)); }catch(e){}
+    if(Array.isArray(localReports) && localReports.length){ reports=localReports; normalizeReportNames(); activeReportId=reports[0].id; items=reports[0].items||[]; project=reports[0].project||project; state.reportSection=reports[0].type||'snag'; renderReportTabs(); renderAll(); }
+    else { reports=[makeReport(project.name||'Report',items,project,'snag',null)]; activeReportId=reports[0].id; state.reportSection='snag'; renderReportTabs(); }
+    openItemsDb().then(function(){ return loadReportsFromDb(); }).then(function(storedReports){
+      if(storedReports && storedReports.length){ reports=storedReports; normalizeReportNames(); activeReportId=reports[0].id; items=reports[0].items||[]; project=reports[0].project||project; state.reportSection=reports[0].type||'snag'; renderReportTabs(); renderAll(); }
+      else { saveItems(items); persistReports(); }
+    }).catch(function(){ persistReports(); });
+  }
+  function loadProject(){
+    try{ return JSON.parse(localStorage.getItem(STORE_PROJECT)) || {name:'', loc:'', preparedBy:''}; }
+    catch(e){ return {name:'', loc:'', preparedBy:''}; }
+  }
+  function saveProject(p){ localStorage.setItem(STORE_PROJECT, JSON.stringify(p)); persistReports(); }
+
+  var items = loadItems();
+  var project = loadProject();
+  var reports = [];
+  var activeReportId = null;
+  var AUTOSAVE_KEY = 'snagapp_autosave_v1';
+  var autosaveTimer = null;
+
+  function setAutosaveStatus(message, kind){
+    var el=document.getElementById('autosaveStatus');
+    if(!el) return;
+    el.textContent=message;
+    el.className='autosave-status '+(kind||'');
+  }
+  function autoSaveToLocalStorage(){
+    try{
+      syncActiveReport();
+      var snapshot={version:1, savedAt:new Date().toISOString(), reports:reports, activeReportId:activeReportId, project:project};
+      localStorage.setItem(STORE_REPORTS, JSON.stringify(reports));
+      localStorage.setItem(STORE_ITEMS, JSON.stringify(items));
+      localStorage.setItem(STORE_PROJECT, JSON.stringify(project));
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(snapshot));
+      setAutosaveStatus('Saved automatically · '+new Date().toLocaleTimeString(), 'saved');
+      return true;
+    }catch(e){
+      setAutosaveStatus('Auto-save unavailable — storage is full', 'warning');
+      return false;
+    }
+  }
+  function scheduleAutosave(){
+    clearTimeout(autosaveTimer);
+    setAutosaveStatus('Saving…');
+    autosaveTimer=setTimeout(function(){ autoSaveToLocalStorage(); }, 350);
+  }
+  function makeReport(name, reportItems, reportProject, type, sourceReportId){
+    return {
+      id:uid(), name:name || 'Report', items:reportItems || [], project:reportProject || {name:'', loc:'', preparedBy:''},
+      type: type || 'snag',
+      sourceReportId: sourceReportId || null
+    };
+  }
+  function reportNameFromLocation(reportProject, fallback){
+    return (reportProject && reportProject.loc && reportProject.loc.trim()) ||
+      (reportProject && reportProject.name && reportProject.name.trim()) || fallback || 'Report';
+  }
+  function normalizeReportNames(){
+    reports.forEach(function(r){
+      r.project = r.project || {name:'',loc:'',preparedBy:''};
+      r.name = reportNameFromLocation(r.project, r.name);
+      r.type = r.type || 'snag';
+      r.sourceReportId = r.sourceReportId || null;
+    });
+  }
+  function syncActiveReport(){
+    var r = reports.find(function(x){ return x.id===activeReportId; });
+    if(r){ r.items=items; r.project=project; r.name=reportNameFromLocation(project, r.name); }
+  }
+  function persistReports(){
+    syncActiveReport();
+    try{ localStorage.setItem(STORE_REPORTS, JSON.stringify(reports)); }catch(e){ setAutosaveStatus('Auto-save unavailable — storage is full', 'warning'); }
+    if(itemsDb){
+      try{ itemsDb.transaction(DB_STORE,'readwrite').objectStore(DB_STORE).put({key:'reports', reports:reports}); }catch(e){}
+    }
+  }
+  function renderReportTabs(){
+    var el=document.getElementById('reportTabs'); if(!el) return;
+    var visibleReports = reports.filter(function(r){ return (r.type||'snag')===state.reportSection; });
+    el.innerHTML=visibleReports.map(function(r){
+      return '<button class="report-tab '+(r.id===activeReportId?'active':'')+'" data-report-id="'+r.id+'" title="'+escapeHtml(r.name)+'">'+escapeHtml(r.name||'Report')+'</button>';
+    }).join('')+'<button class="report-tab add" id="addReportTab" title="'+(state.reportSection==='dsnag' ? 'Create a D-Snag report from a Snag report' : 'New Snag report')+'">+</button>';
+    el.querySelectorAll('[data-report-id]').forEach(function(b){ b.addEventListener('click',function(){ switchReport(b.getAttribute('data-report-id')); }); });
+    document.getElementById('addReportTab').addEventListener('click', createReport);
+  }
+  function switchReport(id){
+    var r=reports.find(function(x){return x.id===id;}); if(!r) return;
+    syncActiveReport(); activeReportId=id; items=r.items||[]; project=r.project||{name:'',loc:'',preparedBy:''};
+    state.reportSection = r.type||'snag';
+    renderReportTabs(); renderAll();
+  }
+  function enterReportSection(sec){
+    if(state.reportSection===sec){ return; }
+    state.reportSection = sec;
+    var candidates = reports.filter(function(r){ return (r.type||'snag')===sec; });
+    if(candidates.length){
+      switchReport(candidates[0].id);
+    } else {
+      syncActiveReport();
+      activeReportId = null;
+      items = [];
+      project = {name:'', loc:'', preparedBy:''};
+      renderReportTabs(); renderAll();
+    }
+  }
+  function createReport(){
+    if(state.reportSection==='dsnag'){
+      openPickSnagReportForDsnag();
+      return;
+    }
+    var name=prompt('Enter the report location / name:', 'New Report');
+    if(!name || !name.trim()) return;
+    name=name.trim();
+    syncActiveReport();
+    var r=makeReport(name,[],{name:name,loc:name,preparedBy:''},'snag',null);
+    reports.push(r); activeReportId=r.id; items=r.items; project=r.project;
+    persistReports(); renderReportTabs(); renderAll(); showToast('New Snag report created');
+  }
+  function createDsnagReportFrom(sourceReport){
+    syncActiveReport();
+    var copiedItems = (sourceReport.items||[]).map(function(it,idx){
+      var clone = JSON.parse(JSON.stringify(it));
+      clone.id = uid();
+      clone.sourceItemId = it.id;
+      clone.sourceReportId = sourceReport.id;
+      clone.refNo = makeReference('dsnag', idx + 1);
+      clone.auditTrail = [{at:new Date().toISOString(),action:'Copied from Snag report',by:project.preparedBy||'User'}];
+      return clone;
+    });
+    var newProject = JSON.parse(JSON.stringify(sourceReport.project||{name:'',loc:'',preparedBy:''}));
+    var newName = (sourceReport.name||'Report') + ' — D-Snag';
+    var r = makeReport(newName, copiedItems, newProject, 'dsnag', sourceReport.id);
+    reports.push(r);
+    activeReportId = r.id; items = r.items; project = r.project;
+    state.reportSection = 'dsnag';
+    persistReports();
+    renderReportTabs(); renderAll();
+    showToast('D-Snag report created from "'+(sourceReport.name||'Report')+'"');
+  }
+  var sheetPickSnagForDsnag = document.getElementById('sheetPickSnagForDsnag');
+  function openPickSnagReportForDsnag(){
+    syncActiveReport();
+    var snagReports = reports.filter(function(r){ return (r.type||'snag')==='snag'; });
+    var listEl = document.getElementById('pickSnagForDsnagList');
+    if(!snagReports.length){
+      listEl.innerHTML = '<div class="dash-note">No Snag reports available yet. Create a Snag report first, then come back to create its D-Snag report.</div>';
+    }else{
+      listEl.innerHTML = snagReports.map(function(r){
+        return '<div class="action-item" data-report-id="'+r.id+'"><span class="ic">📄</span><div>'+escapeHtml(r.name||'Report')+'<small>'+(r.items||[]).length+' snag(s)</small></div></div>';
+      }).join('');
+      listEl.querySelectorAll('[data-report-id]').forEach(function(el){
+        el.addEventListener('click', function(){
+          var sr = reports.find(function(x){ return x.id===el.getAttribute('data-report-id'); });
+          if(!sr) return;
+          sheetPickSnagForDsnag.classList.remove('show');
+          createDsnagReportFrom(sr);
+        });
+      });
+    }
+    sheetPickSnagForDsnag.classList.add('show');
+  }
+  document.getElementById('closePickSnagForDsnag').addEventListener('click', function(){ sheetPickSnagForDsnag.classList.remove('show'); });
+  document.getElementById('cancelPickSnagForDsnag').addEventListener('click', function(){ sheetPickSnagForDsnag.classList.remove('show'); });
+  sheetPickSnagForDsnag.addEventListener('click', function(e){ if(e.target===sheetPickSnagForDsnag) sheetPickSnagForDsnag.classList.remove('show'); });
+
+  /* ---------------- State ---------------- */
+  var state = {
+    search:'', statusFilter:'all', villaFilter:'', tradeFilter:'', priorityFilter:'', sortMode:'priority',
+    editingId:null, photos:[], afterPhotos:[], reportSection:'snag', selectedIds:[]
+  };
+  var PRIORITY_ORDER = {critical:0, high:1, medium:2, low:3};
+  var DEFAULT_TRADE_ITEMS = ['Arch','Civil','Aliminum','WPC Doors','Insulation'];
+  var REMOVED_TRADE_ITEMS = ['finishing','finishes'];
+  function isAllowedTradeItem(value){ return value && REMOVED_TRADE_ITEMS.indexOf(String(value).trim().toLowerCase())===-1; }
+
+  /* ---------------- Utilities ---------------- */
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function makeReference(type, index){
+    var base = ((project.loc||project.name||'REPORT').replace(/[^A-Za-z0-9]+/g,'').toUpperCase().slice(0,6) || 'REPORT');
+    return base+'-'+(type==='dsnag'?'DS':'SN')+'-'+String(index).padStart(3,'0');
+  }
+  function ensureReference(it, index){ if(!it.refNo) it.refNo=makeReference((state.reportSection==='dsnag'?'dsnag':'snag'),index); return it.refNo; }
+  function addAudit(it, action){
+    it.auditTrail=Array.isArray(it.auditTrail)?it.auditTrail:[];
+    it.auditTrail.push({at:new Date().toISOString(),action:action,by:project.preparedBy||'User'});
+    if(it.auditTrail.length>30) it.auditTrail.shift();
+  }
+  function todayStr(){ var d=new Date(); return d.toISOString().slice(0,10); }
+  function fmtDate(s){
+    if(!s) return '—';
+    var p = s.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+  }
+  function isOverdue(it){
+    return it.status!=='closed' && it.dueDate && it.dueDate < todayStr();
+  }
+  function statusLabel(s){ var en={open:'Open',inprogress:'In Progress',dsnagissued:'D-Snag Issued',rectification:'Under Rectification',submitted:'D-Snag Submitted',verified:'Verified',closed:'Closed',reopened:'Rejected / Reopened'}; var ar={open:'مفتوح',inprogress:'قيد التنفيذ',dsnagissued:'تم إصدار دي-سناج',rectification:'قيد المعالجة',submitted:'تم تقديم الدي-سناج',verified:'تم التحقق',closed:'مغلق',reopened:'مرفوض / معاد فتحه'}; return (typeof language!=='undefined'&&language==='ar'?ar:en)[s] || s; }
+  function priorityLabel(p){ var en={critical:'Critical',high:'High',medium:'Medium',low:'Low'}; var ar={critical:'حرج',high:'عالٍ',medium:'متوسط',low:'منخفض'}; return (typeof language!=='undefined'&&language==='ar'?ar:en)[p] || p; }
+
+  var language = localStorage.getItem('snagapp_language_v1') || 'en';
+  var ar = {en:'English',ar:'العربية',field:'سجل السناج الميداني',snagReports:'تقارير السناج',dsnagReports:'تقارير الدي-سناج',total:'الإجمالي',open:'مفتوح',progress:'قيد التنفيذ',closed:'مغلق',filters:'الفلاتر',search:'ابحث عن بند أو موقع أو مسؤول...',dashboard:'لوحة التحليل',settings:'إعدادات المشروع',export:'تصدير',overdue:'بنود متأخرة في هذا التقرير',showOverdue:'عرض المتأخرات ←',selected:'محدد',changeStatus:'تغيير الحالة...',clear:'مسح',apply:'تطبيق',newSnag:'سناج جديد',editSnag:'تعديل السناج',save:'حفظ السناج',delete:'حذف',reference:'الرقم المرجعي',viewOriginal:'عرض بند السناج الأصلي',status:{open:'مفتوح',inprogress:'قيد التنفيذ',dsnagissued:'تم إصدار دي-سناج',rectification:'قيد المعالجة',submitted:'تم تقديم الدي-سناج',verified:'تم التحقق',closed:'مغلق',reopened:'مرفوض / معاد فتحه'}};
+  function tr(en, arText){ return language==='ar' ? arText : en; }
+  function applyLanguage(){
+    document.documentElement.lang=language; document.documentElement.dir=language==='ar'?'rtl':'ltr';
+    document.getElementById('btnLanguage').textContent=language==='ar'?'English':'عربي';
+    document.getElementById('btnLanguage').title=language==='ar'?'English / العربية':'العربية / English';
+    document.getElementById('projSubDisp').textContent=language==='ar'?'سجل السناج الميداني':'Field Snag Register';
+    document.querySelector('[data-sec="snag"]').childNodes[0].textContent=language==='ar'?'تقارير السناج ':'Snag Reports ';
+    document.querySelector('[data-sec="dsnag"]').childNodes[0].textContent=language==='ar'?'تقارير الدي-سناج ':'D-Snag Reports ';
+    document.querySelector('[data-f="all"] .l').textContent=language==='ar'?'الإجمالي':'Total';
+    document.querySelector('[data-f="open"] .l').textContent=language==='ar'?'مفتوح':'Open';
+    document.querySelector('[data-f="inprogress"] .l').textContent=language==='ar'?'قيد التنفيذ':'In Progress';
+    document.querySelector('[data-f="closed"] .l').textContent=language==='ar'?'مغلق':'Closed';
+    document.getElementById('btnFilters').textContent=language==='ar'?'الفلاتر':'Filters';
+    document.getElementById('searchInput').placeholder=language==='ar'?'ابحث عن بند أو موقع أو مسؤول...':'Search for a snag, location, assignee...';
+    document.getElementById('overdueBanner').querySelector('span').innerHTML='⏱ <span id="overdueCount">'+document.getElementById('overdueCount').textContent+'</span> '+(language==='ar'?'بنود متأخرة في هذا التقرير':'overdue item(s) in this report');
+    document.getElementById('overdueBanner').lastElementChild.textContent=language==='ar'?'عرض المتأخرات ←':'Show overdue →';
+    document.getElementById('clearSelection').textContent=language==='ar'?'مسح':'Clear';
+    document.getElementById('bulkStatus').options[0].textContent=language==='ar'?'تغيير الحالة...':'Change status...';
+    document.getElementById('refField').querySelector('label').textContent=language==='ar'?'الرقم المرجعي':'Reference Number';
+    document.getElementById('btnDashboard').title=language==='ar'?'لوحة التحليل':'Dashboard';
+    document.getElementById('btnSettings').title=language==='ar'?'إعدادات المشروع':'Project Settings';
+    renderProjectHeader(); renderStats(); renderList();
+  }
+  document.getElementById('btnLanguage').addEventListener('click',function(){language=language==='en'?'ar':'en';localStorage.setItem('snagapp_language_v1',language);applyLanguage();showToast(language==='ar'?'تم التبديل إلى العربية':'Switched to English');});
+
+  var toastTimer=null;
+  function showToast(msg){
+    var t=document.getElementById('toast');
+    t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){t.classList.remove('show');}, 2600);
+  }
+
+  /* ---------------- Rendering ---------------- */
+  function renderProjectHeader(){
+    document.getElementById('projNameDisp').textContent = reportNameFromLocation(project, 'Project Name');
+    document.getElementById('projSubDisp').textContent = (project.name && project.loc && project.name!==project.loc)
+      ? (project.name + ' — Snag Register') : 'Field Snag Register';
+    document.getElementById('engineerCredit').textContent = getEngineerCredit(project);
+  }
+
+  function getEngineerCredit(reportProject){
+    var arabicDefault='إعداد وتصميم المهندس يوسف عبدالله المحمود';
+    var englishDefault='Prepared and Designed by Engineer Yousef Abdullah Al Mahmoud';
+    var custom=reportProject && String(reportProject.engineerDesigner||'').trim();
+    if(custom && custom!==arabicDefault && custom!==englishDefault) return custom;
+    return language==='ar' ? arabicDefault : englishDefault;
+  }
+  function isDefaultEngineerCredit(value){
+    var v=String(value||'').trim();
+    return !v || v==='إعداد وتصميم المهندس يوسف عبدالله المحمود' || v==='Prepared and Designed by Engineer Yousef Abdullah Al Mahmoud';
+  }
+
+  function renderStats(){
+    document.getElementById('statAll').textContent = items.length;
+    document.getElementById('statOpen').textContent = items.filter(i=>i.status==='open').length;
+    document.getElementById('statProg').textContent = items.filter(i=>['inprogress','dsnagissued','rectification','submitted','reopened'].indexOf(i.status)!==-1).length;
+    document.getElementById('statClosed').textContent = items.filter(i=>i.status==='closed').length;
+    document.querySelectorAll('.stat').forEach(function(el){
+      el.classList.toggle('active', el.getAttribute('data-f')===state.statusFilter);
+    });
+    var overdue=items.filter(isOverdue).length;
+    document.getElementById('overdueCount').textContent=overdue;
+    document.getElementById('overdueBanner').classList.toggle('show', overdue>0);
+    updateBulkBar();
+  }
+
+  function getFilteredSorted(){
+    var list = items.filter(function(it){
+      if(state.statusFilter!=='all' && it.status!==state.statusFilter) return false;
+      if(state.villaFilter && (it.villaNo||'')!==state.villaFilter) return false;
+      if(state.tradeFilter && it.trade!==state.tradeFilter) return false;
+      if(state.priorityFilter && it.priority!==state.priorityFilter) return false;
+      if(state.search){
+        var s = state.search.toLowerCase();
+        var hay = [it.refNo,it.dsnagRef,it.title,it.villaNo,it.location,it.zone,it.floor,it.trade,it.assignee,it.notes,it.correctiveAction,it.submittedBy,it.verifiedBy,it.verificationNotes].join(' ').toLowerCase();
+        if(hay.indexOf(s)===-1) return false;
+      }
+      return true;
+    });
+    list.sort(function(a,b){
+      if(state.sortMode==='newest') return b.createdDate.localeCompare(a.createdDate);
+      if(state.sortMode==='due') return (a.dueDate||'9999').localeCompare(b.dueDate||'9999');
+      // priority mode
+      var pa=PRIORITY_ORDER[a.priority], pb=PRIORITY_ORDER[b.priority];
+      if(a.status==='closed' && b.status!=='closed') return 1;
+      if(b.status==='closed' && a.status!=='closed') return -1;
+      if(pa!==pb) return pa-pb;
+      return (a.dueDate||'9999').localeCompare(b.dueDate||'9999');
+    });
+    return list;
+  }
+
+  function renderList(){
+    var list = getFilteredSorted();
+    var area = document.getElementById('listArea');
+    if(!activeReportId){
+      area.innerHTML = '<div class="empty"><div class="big">🗒️</div>'+
+        '<p>No D-Snag reports yet. Tap the "+" tab above and choose a Snag report to create its D-Snag follow-up report.</p></div>';
+      return;
+    }
+    if(list.length===0){
+      area.innerHTML = '<div class="empty"><div class="big">🗒️</div>'+
+        '<p>No matching snags found. Click the "+" button to record the first field snag with its photo and location.</p></div>';
+      return;
+    }
+    var html = list.map(function(it,idx){
+      var ref=ensureReference(it, items.indexOf(it)+1);
+      var photosHtml = (it.photos||[]).length
+        ? '<div class="card-photos">'+it.photos.map(p=>'<img src="'+escapeHtml(safeImageData(p.data))+'" alt="Snag photo" loading="lazy">').join('')+'</div>'
+        : '';
+      var overdue = isOverdue(it) ? '<span class="overdue-tag">⏱ Overdue</span>' : '';
+      var sourceHtml = (state.reportSection==='dsnag' && it.sourceReportId && it.sourceItemId)
+        ? '<span class="source-link" data-source-report="'+it.sourceReportId+'" data-source-item="'+it.sourceItemId+'">↗ View original snag</span>' : '';
+      return '<div class="card" data-id="'+it.id+'">'+
+        '<div class="stripe '+it.priority+'"></div>'+
+        '<div class="card-body">'+
+          '<div class="card-top">'+
+            '<input class="select-check" type="checkbox" data-select-id="'+it.id+'" '+(state.selectedIds.indexOf(it.id)!==-1?'checked':'')+' title="Select item">'+
+            '<div class="card-title"><div class="card-ref">'+escapeHtml(ref)+'</div>'+escapeHtml(it.title)+'</div>'+ 
+            '<div class="badge '+it.status+'">'+statusLabel(it.status)+'</div>'+ 
+          '</div>'+ 
+          '<div class="card-meta">'+
+            (it.villaNo?'<span>🏠 '+escapeHtml(it.villaNo)+'</span>':'')+
+            ((it.location||it.zone)?'<span>📍 '+escapeHtml(it.location||it.zone)+'</span>':'')+
+            (it.floor?'<span>▣ '+escapeHtml(it.floor)+'</span>':'')+
+            (it.trade?'<span>🏷 '+escapeHtml(it.trade)+'</span>':'')+
+            (it.assignee?'<span>👤 '+escapeHtml(it.assignee)+'</span>':'')+
+            (it.dueDate?'<span>📅 '+fmtDate(it.dueDate)+'</span>':'')+
+            overdue+
+          '</div>'+ 
+          (sourceHtml?'<div class="card-meta">'+sourceHtml+'</div>':'')+
+          photosHtml+
+        '</div>'+
+      '</div>';
+    }).join('');
+    area.innerHTML = html;
+    area.querySelectorAll('.card').forEach(function(el){
+      el.addEventListener('click', function(){ openEdit(el.getAttribute('data-id')); });
+    });
+    area.querySelectorAll('.select-check').forEach(function(box){
+      box.addEventListener('click',function(e){e.stopPropagation();toggleSelection(box.getAttribute('data-select-id'),box.checked);});
+    });
+    area.querySelectorAll('.source-link').forEach(function(link){
+      link.addEventListener('click',function(e){
+        e.stopPropagation();
+        var report=reports.find(function(r){return r.id===link.getAttribute('data-source-report');});
+        if(report){switchReport(report.id);state.search='';var source=report.items.find(function(i){return i.id===link.getAttribute('data-source-item');});if(source) setTimeout(function(){openEdit(source.id);},60);}
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function safeImageData(value){
+    var v=String(value||'');
+    return /^(data:image\/(png|jpeg|jpg|webp|gif);base64,|blob:)/i.test(v) ? v : '';
+  }
+
+  function refreshSuggestions(){
+    var villas = uniqueNonEmpty(items.map(i=>i.villaNo));
+    var locations = uniqueNonEmpty(items.map(i=>i.location || i.zone));
+    var floors = uniqueNonEmpty(items.map(i=>i.floor));
+    var trades = uniqueNonEmpty(DEFAULT_TRADE_ITEMS.concat(items.map(i=>i.trade)).filter(isAllowedTradeItem));
+    var assignees = uniqueNonEmpty(items.map(i=>i.assignee));
+    setDatalist('villaList', villas);
+    setDatalist('locationList', locations);
+    setDatalist('floorList', floors);
+    setDatalist('tradeList', trades);
+    setDatalist('assigneeList', assignees);
+    var villaSelect = document.getElementById('filterVilla');
+    var currentVilla = villaSelect.value;
+    villaSelect.innerHTML = '<option value="">All Villas</option>' + villas.map(v=>'<option value="'+escapeHtml(v)+'">'+escapeHtml(v)+'</option>').join('');
+    villaSelect.value = currentVilla;
+    var tradeSelect = document.getElementById('filterTrade');
+    var current = tradeSelect.value;
+    tradeSelect.innerHTML = '<option value="">All</option>' + trades.map(t=>'<option value="'+escapeHtml(t)+'">'+escapeHtml(t)+'</option>').join('');
+    tradeSelect.value = current;
+  }
+  function updateBulkBar(){
+    state.selectedIds=state.selectedIds.filter(function(id){return items.some(function(it){return it.id===id;});});
+    document.getElementById('selectedCount').textContent=state.selectedIds.length;
+    document.getElementById('bulkBar').classList.toggle('show',state.selectedIds.length>0);
+  }
+  function toggleSelection(id, checked){
+    if(checked && state.selectedIds.indexOf(id)===-1) state.selectedIds.push(id);
+    if(!checked) state.selectedIds=state.selectedIds.filter(function(x){return x!==id;});
+    updateBulkBar();
+  }
+  document.getElementById('overdueBanner').addEventListener('click',function(){
+    state.statusFilter='all';state.search='';state.villaFilter='';state.tradeFilter='';state.priorityFilter='';state.sortMode='due';
+    document.getElementById('searchInput').value='';renderStats();renderList();showToast('Showing overdue items first');
+  });
+  document.getElementById('clearSelection').addEventListener('click',function(){state.selectedIds=[];renderList();updateBulkBar();});
+  document.getElementById('applyBulkStatus').addEventListener('click',function(){
+    var next=document.getElementById('bulkStatus').value;
+    if(!next || !state.selectedIds.length){showToast('Select a status and at least one item');return;}
+    var changed=0;
+    items.forEach(function(it){if(state.selectedIds.indexOf(it.id)!==-1 && it.status!==next){it.status=next;if(next==='closed')it.closedDate=todayStr();else it.closedDate='';addAudit(it,'Bulk status changed to '+statusLabel(next));changed++;}});
+    if(changed){saveItems(items);recordActivity('Bulk status update',changed+' item(s) changed to '+statusLabel(next));state.selectedIds=[];document.getElementById('bulkStatus').value='';renderAll();showToast(changed+' item(s) updated');}
+  });
+  function uniqueNonEmpty(arr){
+    var seen={}, out=[];
+    arr.forEach(function(v){ if(v && !seen[v]){seen[v]=1; out.push(v);} });
+    return out;
+  }
+  function setDatalist(id, values){
+    document.getElementById(id).innerHTML = values.map(v=>'<option value="'+escapeHtml(v)+'">').join('');
+  }
+
+  function renderReportSectionCounts(){
+    document.getElementById('secCountSnag').textContent = reports.filter(function(r){return (r.type||'snag')==='snag';}).length;
+    document.getElementById('secCountDsnag').textContent = reports.filter(function(r){return (r.type||'snag')==='dsnag';}).length;
+  }
+  function syncSectionToggleUI(){
+    document.querySelectorAll('#sectionToggle button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-sec')===state.reportSection);
+    });
+  }
+
+  function renderAll(){
+    renderReportTabs();
+    renderProjectHeader();
+    renderStats();
+    renderReportSectionCounts();
+    syncSectionToggleUI();
+    renderList();
+    refreshSuggestions();
+  }
+
+  /* ---------------- Snag / D-Snag report section toggle ---------------- */
+  document.querySelectorAll('#sectionToggle button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      enterReportSection(btn.getAttribute('data-sec'));
+    });
+  });
+
+  /* ---------------- Stat filter clicks ---------------- */
+  document.querySelectorAll('.stat').forEach(function(el){
+    el.addEventListener('click', function(){
+      state.statusFilter = el.getAttribute('data-f');
+      renderStats(); renderList();
+    });
+  });
+
+  /* ---------------- Search ---------------- */
+  document.getElementById('searchInput').addEventListener('input', function(e){
+    state.search = e.target.value.trim();
+    renderList();
+  });
+
+  /* ---------------- Filters sheet ---------------- */
+  var sheetFilters = document.getElementById('sheetFilters');
+  document.getElementById('btnFilters').addEventListener('click', function(){
+    document.getElementById('filterVilla').value = state.villaFilter;
+    document.getElementById('filterStatus').value = state.statusFilter;
+    document.getElementById('filterTrade').value = state.tradeFilter;
+    document.getElementById('filterPriority').value = state.priorityFilter;
+    document.getElementById('sortMode').value = state.sortMode;
+    sheetFilters.classList.add('show');
+  });
+  document.getElementById('closeFilters').addEventListener('click', function(){ sheetFilters.classList.remove('show'); });
+  document.getElementById('btnApplyFilters').addEventListener('click', function(){
+    state.villaFilter = document.getElementById('filterVilla').value;
+    state.statusFilter = document.getElementById('filterStatus').value;
+    state.tradeFilter = document.getElementById('filterTrade').value;
+    state.priorityFilter = document.getElementById('filterPriority').value;
+    state.sortMode = document.getElementById('sortMode').value;
+    document.getElementById('btnFilters').classList.toggle('on', !!(state.villaFilter||state.tradeFilter||state.priorityFilter||state.statusFilter!=='all'));
+    sheetFilters.classList.remove('show');
+    renderList();
+  });
+  document.getElementById('btnClearFilters').addEventListener('click', function(){
+    state.villaFilter=''; state.statusFilter='all'; state.tradeFilter=''; state.priorityFilter=''; state.sortMode='priority';
+    document.getElementById('btnFilters').classList.remove('on');
+    sheetFilters.classList.remove('show');
+    renderList();
+  });
+  sheetFilters.addEventListener('click', function(e){ if(e.target===sheetFilters) sheetFilters.classList.remove('show'); });
+
+  /* ---------------- Statistics dashboard ---------------- */
+  var sheetDashboard = document.getElementById('sheetDashboard');
+  function getDashboardStats(){
+    syncActiveReport();
+    var all=[];
+    reports.forEach(function(r){ all=all.concat(r.items||[]); });
+    var villaCounts={};
+    all.forEach(function(it){
+      var villa=(it.villaNo||'').trim() || 'Not specified';
+      villaCounts[villa]=(villaCounts[villa]||0)+1;
+    });
+    var villas=Object.keys(villaCounts).sort(function(a,b){return villaCounts[b]-villaCounts[a] || a.localeCompare(b);});
+    return {
+      reports:reports.length, total:all.length,
+      open:all.filter(function(i){return i.status==='open';}).length,
+      inprogress:all.filter(function(i){return i.status==='inprogress';}).length,
+      closed:all.filter(function(i){return i.status==='closed';}).length,
+      currentTotal:items.length,
+      currentOpen:items.filter(function(i){return i.status==='open';}).length,
+      currentClosed:items.filter(function(i){return i.status==='closed';}).length,
+      villas:villas.map(function(v){return {name:v,count:villaCounts[v]};})
+    };
+  }
+  function renderDashboard(){
+    var d=getDashboardStats();
+    var villaRows=d.villas.length ? d.villas.slice(0,10).map(function(v,idx){
+      return '<div class="dash-villa-row"><span>'+(idx+1)+'. '+escapeHtml(v.name)+'</span><strong>'+v.count+' snag(s)</strong></div>';
+    }).join('') : '<div class="dash-note">No villa data available yet.</div>';
+    document.getElementById('dashboardContent').innerHTML=
+      '<div class="dash-note">All reports: '+d.reports+' &nbsp;|&nbsp; Current report: '+escapeHtml(project.name||'Report')+'</div>'+      '<div class="dash-grid">'+        '<div class="dash-card"><span class="dash-number">'+d.total+'</span><span class="dash-label">Total Notes</span></div>'+        '<div class="dash-card"><span class="dash-number">'+d.open+'</span><span class="dash-label">Open</span></div>'+        '<div class="dash-card"><span class="dash-number">'+d.inprogress+'</span><span class="dash-label">In Progress</span></div>'+        '<div class="dash-card"><span class="dash-number">'+d.closed+'</span><span class="dash-label">Closed</span></div>'+      '</div>'+      '<div class="dash-section-title">Current Report</div>'+      '<div class="dash-note">Total: '+d.currentTotal+' &nbsp;|&nbsp; Open: '+d.currentOpen+' &nbsp;|&nbsp; Closed: '+d.currentClosed+'</div>'+      '<div class="dash-section-title">Top Villas by Number of Notes</div>'+villaRows+
+      '<div class="dash-section-title">Status Distribution</div><div style="height:240px"><canvas id="statusChart"></canvas></div>'+      '<div class="dash-section-title">Villa Distribution</div><div style="height:280px"><canvas id="villaChart"></canvas></div>';
+  }
+  var statusChartInstance=null, villaChartInstance=null;
+  function renderDashboardCharts(){
+    if(typeof Chart==='undefined'){ showToast('Charts library could not be loaded'); return; }
+    var d=getDashboardStats();
+    if(statusChartInstance) statusChartInstance.destroy();
+    if(villaChartInstance) villaChartInstance.destroy();
+    var statusCanvas=document.getElementById('statusChart');
+    var villaCanvas=document.getElementById('villaChart');
+    if(!statusCanvas || !villaCanvas) return;
+    statusChartInstance=new Chart(statusCanvas, {
+      type:'doughnut',
+      data:{labels:['Open','In Progress','Closed'],datasets:[{data:[d.open,d.inprogress,d.closed],backgroundColor:['#C1541F','#B9862B','#3C7A5B'],borderColor:'#FFFDF8',borderWidth:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:function(ctx){return ' '+ctx.label+': '+ctx.raw;}}}}}
+    });
+    var top=d.villas.slice(0,10);
+    villaChartInstance=new Chart(villaCanvas, {
+      type:'bar',
+      data:{labels:top.map(function(v){return v.name;}),datasets:[{label:'Notes',data:top.map(function(v){return v.count;}),backgroundColor:'#1E3A5F',borderRadius:4}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{beginAtZero:true,ticks:{precision:0}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' '+ctx.raw+' note(s)';}}}},onClick:function(evt,active){
+        if(active.length && top[active[0].index] && top[active[0].index].name!=='Not specified'){
+          state.villaFilter=top[active[0].index].name; state.statusFilter='all'; renderList(); sheetDashboard.classList.remove('show'); document.getElementById('btnFilters').classList.add('on'); showToast('Filtered by '+top[active[0].index].name);
+        }
+      }}
+    });
+  }
+  document.getElementById('btnDashboard').addEventListener('click', function(){ renderDashboard(); renderDashboardCharts(); sheetDashboard.classList.add('show'); });
+  document.getElementById('closeDashboard').addEventListener('click', function(){ sheetDashboard.classList.remove('show'); });
+  sheetDashboard.addEventListener('click', function(e){ if(e.target===sheetDashboard) sheetDashboard.classList.remove('show'); });
+
+  document.getElementById('exportDashboardExcel').addEventListener('click', function(){
+    var d=getDashboardStats();
+    var rows=[
+      {'Metric':'Total Reports','Value':d.reports},
+      {'Metric':'Total Notes','Value':d.total},
+      {'Metric':'Open Notes','Value':d.open},
+      {'Metric':'In Progress Notes','Value':d.inprogress},
+      {'Metric':'Closed Notes','Value':d.closed},
+      {'Metric':'Current Report Notes','Value':d.currentTotal},
+      {'Metric':'Current Report Open','Value':d.currentOpen},
+      {'Metric':'Current Report Closed','Value':d.currentClosed}
+    ];
+    var villaRows=d.villas.map(function(v,idx){return {'Rank':idx+1,'Villa Number':v.name,'Notes Count':v.count};});
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Summary');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(villaRows),'Top Villas');
+    var arr=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    var blob=new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    saveFileAs(blob,slug(project.name)+'-dashboard.xlsx','Dashboard Excel','.xlsx');
+  });
+  document.getElementById('exportDashboardPdf').addEventListener('click', function(){
+    buildDashboardPdfHtml();
+    sheetDashboard.classList.remove('show');
+    setTimeout(function(){window.print();},80);
+  });
+  function buildDashboardPdfHtml(){
+    var d=getDashboardStats();
+    var engineerCredit=getEngineerCredit(project);
+    var rows=d.villas.map(function(v,idx){return '<tr><td>'+(idx+1)+'</td><td>'+escapeHtml(v.name)+'</td><td>'+v.count+'</td></tr>';}).join('');
+    document.getElementById('reportRoot').innerHTML='<div class="rp-page rp-cover">'+
+      '<h1>Statistics Dashboard</h1>'+      '<div class="sub">'+escapeHtml(project.name||'All Reports')+' — '+fmtDate(todayStr())+'</div>'+      '<div class="sub"><b>'+escapeHtml(engineerCredit)+'</b></div>'+      '<table><tr><td>Total Reports</td><td>'+d.reports+'</td></tr><tr><td>Total Notes</td><td>'+d.total+'</td></tr><tr><td>Open</td><td>'+d.open+'</td></tr><tr><td>In Progress</td><td>'+d.inprogress+'</td></tr><tr><td>Closed</td><td>'+d.closed+'</td></tr><tr><td>Current Report Notes</td><td>'+d.currentTotal+'</td></tr></table>'+      '<h2>Top Villas by Number of Notes</h2>'+      '<table><tr><td>Rank</td><td>Villa Number</td><td>Notes Count</td></tr>'+rows+'</table>'+      '</div>';
+  }
+
+  /* ---------------- Settings sheet ---------------- */
+  var sheetSettings = document.getElementById('sheetSettings');
+  document.getElementById('btnSettings').addEventListener('click', function(){
+    document.getElementById('s_projName').value = project.name||'';
+    document.getElementById('s_projLoc').value = project.loc||'';
+    document.getElementById('s_preparedBy').value = project.preparedBy||'';
+    document.getElementById('s_engineerDesigner').value = getEngineerCredit(project);
+    renderAccountList();
+    sheetSettings.classList.add('show');
+  });
+  document.getElementById('btnCreateUser').addEventListener('click', function(){
+    if(!currentUser || currentUser.role!=='admin') return;
+    var username=document.getElementById('newUsername').value.trim();
+    var password=document.getElementById('newUserPassword').value;
+    var role=document.getElementById('newUserRole').value;
+    if(!/^[A-Za-z0-9._-]{3,30}$/.test(username)){showToast(authText('Username must be 3–30 letters, numbers, dot, dash or underscore','اسم المستخدم يجب أن يكون من 3 إلى 30 حرفًا أو رقمًا أو نقطة أو شرطة'));return;}
+    if(password.length<4){showToast(authText('Password must be at least 4 characters','كلمة المرور يجب ألا تقل عن 4 أحرف'));return;}
+    if(authUsers.some(function(u){return u.username.toLowerCase()===username.toLowerCase();})){showToast(authText('Username already exists','اسم المستخدم موجود مسبقًا'));return;}
+    authUsers.push({id:uid(),username:username,passwordHash:passwordHash(password),role:role==='admin'?'admin':'user',createdAt:new Date().toISOString()});
+    saveUsers(); document.getElementById('newUsername').value=''; document.getElementById('newUserPassword').value=''; renderAccountList(); recordActivity('Create user','Created account: '+username+' ('+role+')'); showToast(authText('User account created','تم إنشاء حساب المستخدم'));
+  });
+  document.getElementById('closeSettings').addEventListener('click', function(){ sheetSettings.classList.remove('show'); });
+  document.getElementById('btnSaveSettings').addEventListener('click', function(){
+    var requestedEngineer=document.getElementById('s_engineerDesigner').value.trim();
+    var currentCustom=isDefaultEngineerCredit(project.engineerDesigner) ? '' : String(project.engineerDesigner||'').trim();
+    var requestedCustom=isDefaultEngineerCredit(requestedEngineer) ? '' : requestedEngineer;
+    if(currentCustom!==requestedCustom){
+      var password=window.prompt(language==='ar' ? 'أدخل كلمة المرور لتغيير اسم المهندس:' : 'Enter the password to change the engineer name:');
+      if(password!=='1984'){
+        showToast(language==='ar' ? 'كلمة المرور غير صحيحة — لم يتم تغيير اسم المهندس' : 'Incorrect password — engineer name was not changed');
+        return;
+      }
+    }
+    project = {
+      name: document.getElementById('s_projName').value.trim(),
+      loc: document.getElementById('s_projLoc').value.trim(),
+      preparedBy: document.getElementById('s_preparedBy').value.trim(),
+      engineerDesigner: requestedEngineer || getEngineerCredit(project)
+    };
+    syncActiveReport();
+    saveProject(project);
+    recordActivity('Update project settings','Project settings and engineer credit updated');
+    renderReportTabs();
+    renderProjectHeader();
+    sheetSettings.classList.remove('show');
+    showToast('Project settings saved');
+  });
+  sheetSettings.addEventListener('click', function(e){ if(e.target===sheetSettings) sheetSettings.classList.remove('show'); });
+
+  /* ---------------- Add / Edit sheet ---------------- */
+  var sheetEdit = document.getElementById('sheetEdit');
+
+  function setSeg(containerId, value){
+    document.querySelectorAll('#'+containerId+' button').forEach(function(b){
+      b.classList.toggle('sel', b.getAttribute('data-v')===value);
+    });
+  }
+  ['seg_priority','seg_status'].forEach(function(segId){
+    document.getElementById(segId).addEventListener('click', function(e){
+      var btn = e.target.closest('button'); if(!btn) return;
+      setSeg(segId, btn.getAttribute('data-v'));
+    });
+  });
+
+  function openAdd(){
+    if(!activeReportId){ showToast('Create or select a report first'); return; }
+    state.editingId = null;
+    state.photos = [];
+    state.afterPhotos = [];
+    document.getElementById('editTitle').textContent = 'New Snag';
+    document.getElementById('f_ref').value=makeReference(state.reportSection==='dsnag'?'dsnag':'snag',items.length+1);
+    document.getElementById('f_title').value='';
+    document.getElementById('f_villa').value='';
+    document.getElementById('f_location').value='';
+    document.getElementById('f_floor').value='';
+    document.getElementById('f_trade').value='';
+    document.getElementById('f_assignee').value='';
+    document.getElementById('f_due').value='';
+    document.getElementById('f_dsnagRef').value='';
+    document.getElementById('f_dsnagDate').value='';
+    document.getElementById('f_corrective').value='';
+    document.getElementById('f_submittedBy').value='';
+    document.getElementById('f_verifiedBy').value='';
+    document.getElementById('f_verificationNotes').value='';
+    document.getElementById('f_notes').value='';
+    setSeg('seg_priority','medium');
+    setSeg('seg_status', state.reportSection==='dsnag' ? 'dsnagissued' : 'open');
+    document.getElementById('btnDelete').style.display='none';
+    renderPhotoRow();
+    renderAfterPhotoRow();
+    sheetEdit.classList.add('show');
+  }
+
+  function openEdit(id){
+    var it = items.find(function(x){return x.id===id;});
+    if(!it) return;
+    state.editingId = id;
+    state.photos = (it.photos||[]).slice();
+    state.afterPhotos = (it.afterPhotos||[]).slice();
+    document.getElementById('editTitle').textContent = 'Edit Snag';
+    document.getElementById('f_ref').value = ensureReference(it,items.indexOf(it)+1);
+    document.getElementById('f_title').value = it.title||'';
+    document.getElementById('f_villa').value = it.villaNo||'';
+    document.getElementById('f_location').value = it.location||it.zone||'';
+    document.getElementById('f_floor').value = it.floor||'';
+    document.getElementById('f_trade').value = it.trade||'';
+    document.getElementById('f_assignee').value = it.assignee||'';
+    document.getElementById('f_due').value = it.dueDate||'';
+    document.getElementById('f_dsnagRef').value = it.dsnagRef||'';
+    document.getElementById('f_dsnagDate').value = it.dsnagDate||'';
+    document.getElementById('f_corrective').value = it.correctiveAction||'';
+    document.getElementById('f_submittedBy').value = it.submittedBy||'';
+    document.getElementById('f_verifiedBy').value = it.verifiedBy||'';
+    document.getElementById('f_verificationNotes').value = it.verificationNotes||'';
+    document.getElementById('f_notes').value = it.notes||'';
+    setSeg('seg_priority', it.priority||'medium');
+    setSeg('seg_status', it.status||'open');
+    document.getElementById('btnDelete').style.display='block';
+    renderPhotoRow();
+    renderAfterPhotoRow();
+    sheetEdit.classList.add('show');
+  }
+
+  function closeEditSheet(){ sheetEdit.classList.remove('show'); }
+  document.getElementById('btnAdd').addEventListener('click', openAdd);
+  document.getElementById('closeEdit').addEventListener('click', closeEditSheet);
+  sheetEdit.addEventListener('click', function(e){ if(e.target===sheetEdit) closeEditSheet(); });
+
+  function renderPhotoRow(){
+    var row = document.getElementById('photoRow');
+    var html = state.photos.map(function(p,idx){
+      return '<div class="photo-thumb"><img src="'+escapeHtml(safeImageData(p.data))+'" alt="Snag photo"><button class="rm" type="button" aria-label="Remove photo" data-idx="'+idx+'">✕</button></div>';
+    }).join('');
+    html += '<div class="add-photo-btn" id="addPhotoBtn">📷</div>';
+    row.innerHTML = html;
+    var addBtn = document.getElementById('addPhotoBtn');
+    if(addBtn) addBtn.addEventListener('click', function(){ document.getElementById('photoInput').click(); });
+    row.querySelectorAll('.rm').forEach(function(b){
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        state.photos.splice(parseInt(b.getAttribute('data-idx'),10),1);
+        renderPhotoRow();
+      });
+    });
+  }
+
+  function renderAfterPhotoRow(){
+    var row=document.getElementById('afterPhotoRow');
+    row.innerHTML=state.afterPhotos.map(function(p,idx){
+      return '<div class="photo-thumb"><img src="'+escapeHtml(safeImageData(p.data))+'" alt="After rectification photo"><button class="rm" type="button" aria-label="Remove photo" data-idx="'+idx+'">✕</button></div>';
+    }).join('')+'<div class="add-photo-btn" id="addAfterPhotoBtn" role="button" tabindex="0" aria-label="Add after rectification photo">📷</div>';
+    var add=document.getElementById('addAfterPhotoBtn');
+    if(add){
+      add.addEventListener('click',function(){document.getElementById('afterPhotoInput').click();});
+      add.addEventListener('keydown',function(e){if(e.key==='Enter' || e.key===' '){e.preventDefault();document.getElementById('afterPhotoInput').click();}});
+    }
+    row.querySelectorAll('.rm').forEach(function(b){
+      b.addEventListener('click',function(e){e.stopPropagation();state.afterPhotos.splice(parseInt(b.getAttribute('data-idx'),10),1);renderAfterPhotoRow();});
+    });
+  }
+
+  // Compress photos before storage to keep local storage and backups usable.
+  function preserveOriginalImage(file){
+    return new Promise(function(resolve,reject){
+      if(!file || !/^image\//i.test(file.type)){ reject(new Error('Invalid image')); return; }
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function(e){
+        var img = new Image();
+        img.onerror = reject;
+        img.onload = function(){
+          var maxSide = 1800;
+          var scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('photoInput').addEventListener('change', function(e){
+    var files = Array.from(e.target.files || []);
+    if(!files.length) return;
+
+    Promise.all(files.map(function(file){
+      return preserveOriginalImage(file).then(function(dataUrl){
+        return {data:dataUrl};
+      });
+    })).then(function(newPhotos){
+      state.photos = state.photos.concat(newPhotos);
+      renderPhotoRow();
+    }).catch(function(){ showToast('Unable to process one or more images'); });
+
+    e.target.value='';
+  });
+
+  document.getElementById('afterPhotoInput').addEventListener('change', function(e){
+    var files=Array.from(e.target.files||[]); if(!files.length) return;
+    Promise.all(files.map(function(file){return preserveOriginalImage(file).then(function(dataUrl){return {data:dataUrl};});})).then(function(newPhotos){state.afterPhotos=state.afterPhotos.concat(newPhotos);renderAfterPhotoRow();}).catch(function(){showToast('Unable to process after-rectification photos');});
+    e.target.value='';
+  });
+
+  document.getElementById('btnSave').addEventListener('click', function(){
+    var title = document.getElementById('f_title').value.trim();
+    if(!title){ showToast('Please enter a snag description'); return; }
+    var priorityBtn = document.querySelector('#seg_priority button.sel');
+    var statusBtn = document.querySelector('#seg_status button.sel');
+    var priority = priorityBtn ? priorityBtn.getAttribute('data-v') : 'medium';
+    var status = statusBtn ? statusBtn.getAttribute('data-v') : 'open';
+    var dsnagRef = document.getElementById('f_dsnagRef').value.trim();
+    var verifiedBy = document.getElementById('f_verifiedBy').value.trim();
+    var afterPhotos = state.afterPhotos || [];
+    var dueDate = document.getElementById('f_due').value;
+    if(dueDate && dueDate < todayStr() && status==='open'){
+      showToast('Open items cannot have a past due date');
+      return;
+    }
+    if(['submitted','verified','closed'].indexOf(status)!==-1 && !dsnagRef){
+      showToast('Add a D-Snag reference before submitting or closing');
+      return;
+    }
+    if(status==='verified' && !verifiedBy){
+      showToast('Add the engineer verification name first');
+      return;
+    }
+    if(status==='closed' && (!dsnagRef || !verifiedBy || !afterPhotos.length)){
+      showToast('To close: add D-Snag reference, after photos, and engineer verification');
+      return;
+    }
+
+    if(state.editingId){
+      var it = items.find(function(x){return x.id===state.editingId;});
+      var wasClosed = it.status==='closed';
+      var oldStatus=it.status;
+      it.title = title;
+      it.villaNo = document.getElementById('f_villa').value.trim();
+      it.location = document.getElementById('f_location').value.trim();
+      it.floor = document.getElementById('f_floor').value.trim();
+      it.zone = it.location;
+      it.trade = document.getElementById('f_trade').value.trim();
+      it.assignee = document.getElementById('f_assignee').value.trim();
+      it.dueDate = document.getElementById('f_due').value;
+      it.notes = document.getElementById('f_notes').value.trim();
+      it.priority = priority;
+      it.status = status;
+      it.photos = state.photos;
+      it.afterPhotos = state.afterPhotos;
+      it.dsnagRef = document.getElementById('f_dsnagRef').value.trim();
+      it.dsnagDate = document.getElementById('f_dsnagDate').value;
+      it.correctiveAction = document.getElementById('f_corrective').value.trim();
+      it.submittedBy = document.getElementById('f_submittedBy').value.trim();
+      it.verifiedBy = document.getElementById('f_verifiedBy').value.trim();
+      it.verificationNotes = document.getElementById('f_verificationNotes').value.trim();
+      if(status==='closed' && !wasClosed) it.closedDate = todayStr();
+      if(status!=='closed') it.closedDate = '';
+      it.refNo = document.getElementById('f_ref').value || ensureReference(it,items.indexOf(it)+1);
+      if(oldStatus!==status) addAudit(it,'Status changed from '+statusLabel(oldStatus)+' to '+statusLabel(status));
+      else addAudit(it,'Item updated');
+    }else{
+      items.push({
+        id: uid(),
+        refNo: document.getElementById('f_ref').value || makeReference(state.reportSection==='dsnag'?'dsnag':'snag',items.length+1),
+        title: title,
+        villaNo: document.getElementById('f_villa').value.trim(),
+        location: document.getElementById('f_location').value.trim(),
+        floor: document.getElementById('f_floor').value.trim(),
+        zone: document.getElementById('f_location').value.trim(),
+        trade: document.getElementById('f_trade').value.trim(),
+        assignee: document.getElementById('f_assignee').value.trim(),
+        dueDate: document.getElementById('f_due').value,
+        notes: document.getElementById('f_notes').value.trim(),
+        priority: priority,
+        status: status,
+        photos: state.photos,
+        afterPhotos: state.afterPhotos,
+        dsnagRef: document.getElementById('f_dsnagRef').value.trim(),
+        dsnagDate: document.getElementById('f_dsnagDate').value,
+        correctiveAction: document.getElementById('f_corrective').value.trim(),
+        submittedBy: document.getElementById('f_submittedBy').value.trim(),
+        verifiedBy: document.getElementById('f_verifiedBy').value.trim(),
+        verificationNotes: document.getElementById('f_verificationNotes').value.trim(),
+        createdDate: todayStr(),
+        closedDate: status==='closed' ? todayStr() : ''
+      });
+      addAudit(items[items.length-1],'Item created');
+    }
+    if(saveItems(items)){
+      recordActivity(state.editingId ? 'Update snag' : 'Create snag',title+' ['+statusLabel(status)+']');
+      closeEditSheet();
+      renderAll();
+      showToast('Snag saved');
+    }
+  });
+
+  document.getElementById('btnDelete').addEventListener('click', function(){
+    if(!state.editingId) return;
+    if(!confirm('Delete this snag permanently?')) return;
+    items = items.filter(function(x){return x.id!==state.editingId;});
+    saveItems(items);
+    recordActivity('Delete snag','Deleted snag: '+(state.editingId||''));
+    closeEditSheet();
+    renderAll();
+    showToast('Snag deleted');
+  });
+
+  /* ---------------- Export menu ---------------- */
+  var sheetExport = document.getElementById('sheetExport');
+  document.getElementById('btnExportMenu').addEventListener('click', function(){ sheetExport.classList.add('show'); });
+  document.getElementById('closeExport').addEventListener('click', function(){ sheetExport.classList.remove('show'); });
+  sheetExport.addEventListener('click', function(e){ if(e.target===sheetExport) sheetExport.classList.remove('show'); });
+
+  function slug(s){ return (s||'snag-register').replace(/[^a-zA-Z0-9\u0600-\u06FF]+/g,'-'); }
+
+  /* Excel export */
+  document.getElementById('actExcel').addEventListener('click', function(){
+    if(items.length===0){ showToast('There are no snags to export'); return; }
+    recordActivity('Export Excel','Exported current report to Excel');
+    var rows = items.map(function(it,idx){
+      return {
+        '#': idx+1,
+        'Reference': it.refNo || makeReference(state.reportSection==='dsnag'?'dsnag':'snag',idx+1),
+        'Description': it.title,
+        'Villa Number': it.villaNo || '',
+        'Location / Room': it.location || it.zone || '',
+        'Floor / Level': it.floor || '',
+        'Trade': it.trade,
+        'Priority': priorityLabel(it.priority),
+        'Status': statusLabel(it.status),
+        'Assignee': it.assignee,
+        'Created Date': fmtDate(it.createdDate),
+        'Due Date': fmtDate(it.dueDate),
+        'Closed Date': fmtDate(it.closedDate),
+        'Notes': it.notes
+      };
+    });
+    var ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{wch:4},{wch:35},{wch:14},{wch:20},{wch:16},{wch:10},{wch:12},{wch:16},{wch:12},{wch:12},{wch:12},{wch:35}];
+    var currentReport = reports.find(function(r){ return r.id===activeReportId; });
+    var rtype = currentReport ? (currentReport.type||'snag') : 'snag';
+    var sheetName = rtype==='dsnag' ? 'D-Snag' : 'Snag';
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    var excelArray = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    var excelBlob = new Blob([excelArray], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    saveFileAs(excelBlob, slug(project.name)+'-'+sheetName.toLowerCase()+'-list.xlsx', 'Excel Workbook', '.xlsx').then(function(saved){
+      if(saved) sheetExport.classList.remove('show');
+    });
+  });
+
+  /* PDF report export */
+  document.getElementById('actPdf').addEventListener('click', function(){
+    if(items.length===0){ showToast('There are no snags to export'); return; }
+    recordActivity('Export PDF','Printed current report as PDF');
+    sheetExport.classList.remove('show');
+    buildReportHtml();
+    setTimeout(function(){
+      window.print();
+    }, 80);
+  });
+  document.getElementById('actAllPdf').addEventListener('click', function(){
+    if(!reports.length || !reports.some(function(r){ return (r.items||[]).length; })){ showToast('There are no reports to export'); return; }
+    recordActivity('Export all PDF','Printed all reports as one PDF');
+    sheetExport.classList.remove('show');
+    buildAllReportsHtml();
+    setTimeout(function(){ window.print(); }, 80);
+  });
+  var sheetSelectReports = document.getElementById('sheetSelectReports');
+  function openSelectReports(){
+    if(!reports.length){ showToast('There are no reports to export'); return; }
+    var list=document.getElementById('reportSelectionList');
+    list.innerHTML=reports.map(function(r){
+      var tag = (r.type||'snag')==='dsnag' ? 'D-Snag' : 'Snag';
+      return '<label class="action-item" style="cursor:pointer"><input type="checkbox" class="report-check" value="'+r.id+'" checked style="width:18px;height:18px;accent-color:var(--navy)"><div>'+escapeHtml(r.name||'Report')+'<small>['+tag+'] '+(r.items||[]).length+' snag(s)</small></div></label>';
+    }).join('');
+    sheetSelectReports.classList.add('show');
+  }
+  document.getElementById('actSelectedPdf').addEventListener('click', function(){
+    sheetExport.classList.remove('show'); openSelectReports();
+  });
+  document.getElementById('closeSelectReports').addEventListener('click', function(){ sheetSelectReports.classList.remove('show'); });
+  document.getElementById('cancelSelectReports').addEventListener('click', function(){ sheetSelectReports.classList.remove('show'); });
+  sheetSelectReports.addEventListener('click', function(e){ if(e.target===sheetSelectReports) sheetSelectReports.classList.remove('show'); });
+  document.getElementById('exportSelectedPdf').addEventListener('click', function(){
+    var ids=Array.from(document.querySelectorAll('.report-check:checked')).map(function(x){return x.value;});
+    var chosen=reports.filter(function(r){return ids.indexOf(r.id)!==-1;});
+    if(!chosen.length){ showToast('Select at least one report'); return; }
+    recordActivity('Export selected PDF','Printed '+chosen.length+' selected report(s) as PDF');
+    sheetSelectReports.classList.remove('show');
+    buildSelectedReportsHtml(chosen);
+    setTimeout(function(){ window.print(); }, 80);
+  });
+  document.getElementById('actDeleteReport').addEventListener('click', function(){
+    if(!currentUser || currentUser.role!=='admin'){ showToast(authText('Only an administrator can delete a full report','فقط المدير يستطيع حذف التقرير بالكامل')); return; }
+    var current=reports.find(function(r){return r.id===activeReportId;});
+    if(!current) return;
+    if(reports.length===1){
+      showToast('The last report cannot be deleted. Create another report first.');
+      return;
+    }
+    var reportName=current.name || project.name || 'Current Report';
+    var warning='WARNING: This will permanently delete the report "'+reportName+'" and all of its snags, photos, notes, and settings. This action cannot be undone. Continue?';
+    if(!confirm(warning)) return;
+    var deletePassword=window.prompt(language==='ar' ? 'أدخل كلمة المرور لحذف التقرير بالكامل:' : 'Enter the password to permanently delete the entire report:');
+    if(deletePassword!=='1984'){
+      showToast(language==='ar' ? 'كلمة المرور غير صحيحة — لم يتم حذف التقرير' : 'Incorrect password — the report was not deleted');
+      return;
+    }
+    recordActivity('Delete report','Deleted report: '+reportName);
+    reports=reports.filter(function(r){return r.id!==activeReportId;});
+    var sameType = reports.filter(function(r){ return (r.type||'snag')===state.reportSection; });
+    var next = sameType.length ? sameType[sameType.length-1] : reports[reports.length-1];
+    if(next){
+      activeReportId=next.id; items=next.items||[]; project=next.project||{name:'',loc:'',preparedBy:''};
+      state.reportSection = next.type||'snag';
+    }else{
+      activeReportId=null; items=[]; project={name:'',loc:'',preparedBy:''};
+    }
+    persistReports(); saveItems(items);
+    sheetExport.classList.remove('show');
+    renderReportTabs(); renderAll();
+    showToast('Report deleted');
+  });
+  window.addEventListener('afterprint', function(){
+    document.getElementById('reportRoot').innerHTML = '';
+  });
+
+  function buildFindingCard(it, idx, reportType){
+    var isDsnag = reportType==='dsnag';
+    var beforePhotos=(it.photos||[]).map(p=>'<img src="'+escapeHtml(safeImageData(p.data))+'" alt="Before inspection photo">').join('');
+    var afterPhotos=(it.afterPhotos||[]).map(p=>'<img src="'+escapeHtml(safeImageData(p.data))+'" alt="After rectification photo">').join('');
+    var dsnagMeta = isDsnag ? (
+      '<div class="meta">'+
+        '<b>D-Snag Ref:</b> '+escapeHtml(it.dsnagRef||'—')+' &nbsp; | &nbsp; <b>D-Snag Response Date:</b> '+fmtDate(it.dsnagDate)+'<br>'+
+        '<b>Submitted By:</b> '+escapeHtml(it.submittedBy||'—')+' &nbsp; | &nbsp; <b>Verified By:</b> '+escapeHtml(it.verifiedBy||'—')+
+      '</div>'
+    ) : '';
+    var correctiveHtml = (isDsnag && it.correctiveAction) ? '<div class="desc"><b>Corrective Action / Contractor Response:</b> '+escapeHtml(it.correctiveAction)+'</div>' : '';
+    var verificationHtml = (isDsnag && it.verificationNotes) ? '<div class="desc"><b>Rejection Reason / Closure Notes:</b> '+escapeHtml(it.verificationNotes)+'</div>' : '';
+    var photosHtml =
+      (beforePhotos ? '<div class="rp-photo-label">Before (Issue)</div><div class="rp-photos">'+beforePhotos+'</div>' : '') +
+      (isDsnag ? (afterPhotos ? '<div class="rp-photo-label">After Rectification</div><div class="rp-photos">'+afterPhotos+'</div>' : '<div class="rp-photo-label">After Rectification</div><div class="desc" style="margin:0 0 6px;">No after-rectification photo uploaded.</div>') : '');
+    return '<div class="rp-item priority-'+(it.priority||'medium')+'">'+
+      '<h3>'+escapeHtml(it.refNo || makeReference(reportType==='dsnag'?'dsnag':'snag',idx+1))+' — Finding '+String(idx+1).padStart(2,'0')+' — '+escapeHtml(it.title)+'</h3>'+      '<div class="meta">'+        '<b>Villa:</b> '+escapeHtml(it.villaNo||'—')+' &nbsp; | &nbsp; <b>Location:</b> '+escapeHtml(it.location||it.zone||'—')+' &nbsp; | &nbsp; <b>Floor:</b> '+escapeHtml(it.floor||'—')+'<br>'+        '<b>Trade:</b> '+escapeHtml(it.trade||'—')+' &nbsp; | &nbsp; <b>Priority:</b> '+priorityLabel(it.priority)+' &nbsp; | &nbsp; <b>Status:</b> '+statusLabel(it.status)+'<br>'+        '<b>Assignee:</b> '+escapeHtml(it.assignee||'—')+' &nbsp; | &nbsp; <b>Due:</b> '+fmtDate(it.dueDate)+' &nbsp; | &nbsp; <b>Closed:</b> '+fmtDate(it.closedDate)+      '</div>'+      dsnagMeta+      (it.notes ? '<div class="desc"><b>Notes:</b> '+escapeHtml(it.notes)+'</div>' : '')+      correctiveHtml+      verificationHtml+      photosHtml+    '</div>';
+  }
+  function buildFindingsBlock(list, heading, reportType){
+    if(!list.length){
+      return '<div class="eng-section-title">'+heading+' (0)</div>'+
+        '<div class="rp-item"><div class="desc" style="margin:0;">No items to display.</div></div>';
+    }
+    return '<div class="eng-section-title">'+heading+' ('+list.length+')</div>'+
+      list.map(function(it,idx){ return buildFindingCard(it,idx,reportType); }).join('');
+  }
+  function buildReportSection(reportItems, reportProject, reportName, filtered, reportType){
+    var counts = {
+      total: reportItems.length,
+      open: reportItems.filter(i=>i.status==='open').length,
+      inprogress: reportItems.filter(i=>i.status==='inprogress').length,
+      closed: reportItems.filter(i=>i.status==='closed').length
+    };
+    var baseList = filtered ? getFilteredSorted() : reportItems.slice();
+    baseList.sort(function(a,b){ return (b.createdDate||'').localeCompare(a.createdDate||''); });
+    var displayName=reportName||reportProject.loc||reportProject.name||'Report';
+    var engineerCredit=getEngineerCredit(reportProject);
+    var cover='<div class="rp-page engineering-report">'+
+      '<div class="eng-header"><div><div class="eng-brand">FIELD ENGINEERING • SNAG REGISTER</div><div class="eng-title">'+escapeHtml(displayName)+'</div><div class="eng-subtitle">Technical Inspection &amp; Corrective Action Report</div><div class="eng-subtitle"><b>'+escapeHtml(engineerCredit)+'</b></div></div>'+      '<div class="eng-code"><strong>REPORT</strong><br>'+escapeHtml(todayStr())+'<br>Rev. 01</div></div>'+      '<div class="eng-meta">'+        '<div><b>Project</b>'+escapeHtml(reportProject.name||'—')+'</div>'+        '<div><b>Location</b>'+escapeHtml(reportProject.loc||displayName||'—')+'</div>'+        '<div><b>Prepared By</b>'+escapeHtml(reportProject.preparedBy||'—')+'</div>'+        '<div><b>Engineer / Designer</b>'+escapeHtml(engineerCredit)+'</div>'+        '<div><b>Listed Findings</b>'+baseList.length+' of '+counts.total+'</div>'+      '</div>'+      '<div class="eng-kpis"><div class="eng-kpi"><strong>'+counts.total+'</strong><span>Total</span></div><div class="eng-kpi open"><strong>'+counts.open+'</strong><span>Open</span></div><div class="eng-kpi progress"><strong>'+counts.inprogress+'</strong><span>In Progress</span></div><div class="eng-kpi closed"><strong>'+counts.closed+'</strong><span>Closed</span></div></div>'+    '</div>';
+    var heading = reportType==='dsnag' ? 'D-Snag Findings' : 'Snag Findings';
+    var itemsHtml = buildFindingsBlock(baseList, heading, reportType);
+    return cover+itemsHtml+'<div class="eng-footer"><span>'+escapeHtml(engineerCredit)+'</span><span>Engineering Document • '+escapeHtml(displayName)+'</span></div></div>';
+  }
+  function buildReportHtml(){
+    var currentReport = reports.find(function(r){ return r.id===activeReportId; });
+    var rtype = currentReport ? (currentReport.type||'snag') : 'snag';
+    document.getElementById('reportRoot').innerHTML = buildReportSection(items, project, project.name||'Report', true, rtype);
+  }
+  function buildAllReportsHtml(){
+    syncActiveReport();
+    buildSelectedReportsHtml(reports);
+  }
+  function buildSelectedReportsHtml(selectedReports){
+    var sections = selectedReports.map(function(r, idx){
+      var rItems = r.items || [];
+      var rProject = r.project || {name:'',loc:'',preparedBy:''};
+      var section = buildReportSection(rItems, rProject, r.name || rProject.name || ('Report '+(idx+1)), false, r.type||'snag');
+      return (idx ? '<div class="rp-report-separator"></div>' : '') + section;
+    }).join('');
+    document.getElementById('reportRoot').innerHTML = sections || '<div class="rp-page"><h1>No reports available</h1></div>';
+  }
+
+  /* Backup / restore */
+  async function saveFileAs(blob, suggestedName, description, extension){
+    if(window.showSaveFilePicker){
+      try{
+        var mime = extension === '.xlsx' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/json';
+        var handle = await window.showSaveFilePicker({
+          suggestedName: suggestedName,
+          types: [{description: description, accept: {[mime]: [extension]}}]
+        });
+        var writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        showToast('File saved successfully');
+        return true;
+      }catch(err){
+        if(err && err.name === 'AbortError') return false;
+        showToast('Unable to save the file');
+        return false;
+      }
+    }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = suggestedName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    showToast('Download started — choose the destination in your browser');
+    return true;
+  }
+
+  document.getElementById('actBackup').addEventListener('click', async function(){
+    syncActiveReport();
+    recordActivity('Backup data','Created JSON backup');
+    var payload = JSON.stringify({schemaVersion:2, appVersion:'1.1.0', exportedAt:new Date().toISOString(), reports:reports, activeReportId:activeReportId, project:project, items:items}, null, 2);
+    var blob = new Blob([payload], {type:'application/json'});
+    var saved = await saveFileAs(blob, slug(project.name)+'-backup.json', 'JSON Backup', '.json');
+    if(saved) sheetExport.classList.remove('show');
+  });
+  document.getElementById('actRestore').addEventListener('click', function(){
+    document.getElementById('restoreInput').click();
+  });
+  document.getElementById('restoreInput').addEventListener('change', function(e){
+    var file = e.target.files[0]; if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      try{
+        var data = JSON.parse(evt.target.result);
+        if(!data || !Array.isArray(data.items) || (data.reports !== undefined && !Array.isArray(data.reports))) throw new Error('bad file');
+        data.items.forEach(function(it){ if(!it || typeof it !== 'object' || !it.id) throw new Error('bad item'); });
+        if(Array.isArray(data.reports)) data.reports.forEach(function(r){ if(!r || typeof r !== 'object' || !r.id || !Array.isArray(r.items||[])) throw new Error('bad report'); });
+        if(!confirm('Current data will be replaced by the imported backup. Continue?')) return;
+        if(Array.isArray(data.reports) && data.reports.length){
+          reports = data.reports;
+          normalizeReportNames();
+          activeReportId = data.activeReportId || reports[0].id;
+          var active = reports.find(function(r){return r.id===activeReportId;}) || reports[0];
+          activeReportId = active.id; items = active.items || []; project = active.project || {name:'',loc:'',preparedBy:''};
+          state.reportSection = active.type||'snag';
+        }else{
+          items = data.items || [];
+          project = data.project || project;
+          reports = [makeReport(project.name || 'Report', items, project, 'snag', null)];
+          activeReportId = reports[0].id;
+          state.reportSection = 'snag';
+        }
+        saveItems(items); saveProject(project); persistReports();
+        recordActivity('Restore data','Imported JSON backup');
+        renderReportTabs(); renderAll();
+        sheetExport.classList.remove('show');
+        showToast('Data imported successfully');
+      }catch(err){
+        showToast('Invalid import file');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value='';
+  });
+
+  /* ---------------- Automatic browser save ---------------- */
+  document.addEventListener('input', function(e){
+    if(e.target && (e.target.closest('#sheetEdit') || e.target.closest('#sheetSettings'))) scheduleAutosave();
+  });
+  document.addEventListener('change', function(e){
+    if(e.target && (e.target.closest('#sheetEdit') || e.target.closest('#sheetSettings'))) scheduleAutosave();
+  });
+  window.addEventListener('beforeunload', function(){ autoSaveToLocalStorage(); });
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') autoSaveToLocalStorage(); });
+  setInterval(autoSaveToLocalStorage, 10000);
+
+  /* ---------------- Init ---------------- */
+  initAuth();
+  renderAll();
+  applyLanguage();
+  initializeItemsStorage();
+})();
+</script>
+</body>
+</html>
